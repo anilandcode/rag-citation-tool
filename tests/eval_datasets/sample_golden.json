@@ -1,0 +1,20 @@
+[
+    {
+        "question": "What is the refund policy?",
+        "ground_truth": "Refunds are available within 30 days of purchase.",
+        "answer": "According to the policy, refunds are available within 30 days of purchase. [Source: policy.pdf, Page 2]",
+        "contexts": ["Refunds are available within 30 days of purchase for all products."]
+    },
+    {
+        "question": "How do I reset my password?",
+        "ground_truth": "Click 'Forgot Password' on the login screen to receive a reset link.",
+        "answer": "I don't have enough information to answer this.",
+        "contexts": ["The system supports email-based login. Users must authenticate with a valid email and password."]
+    },
+    {
+        "question": "What are the supported file formats?",
+        "ground_truth": "Supported formats include PDF, DOCX, TXT, and Markdown.",
+        "answer": "The system supports PDF, DOCX, TXT, and Markdown files. [Source: docs_spec.pdf, Page 3]",
+        "contexts": ["Input formats: PDF, DOCX, TXT, Markdown are all supported for document ingestion."]
+    }
+]

@@ -1,0 +1,49 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - COHERE_API_KEY=${COHERE_API_KEY}
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}
+      - LANGFUSE_HOST=http://langfuse:3000
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      langfuse:
+        condition: service_started
+      langfuse-db:
+        condition: service_healthy
+
+  langfuse:
+    image: langfuse/langfuse:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@langfuse-db:5432/langfuse
+      - NEXTAUTH_SECRET=change-me-in-production
+      - SALT=change-me-in-production
+      - TELEMETRY_ENABLED=false
+    depends_on:
+      langfuse-db:
+        condition: service_healthy
+
+  langfuse-db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=langfuse
+    volumes:
+      - langfuse_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  langfuse_pgdata:
