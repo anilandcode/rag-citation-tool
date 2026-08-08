@@ -269,12 +269,29 @@
     background: var(--color-card-green); border-radius: var(--radius-card); padding: 32px;
     color: white;
   }
+  .testimonial-main .featured-tag {
+    font-size: 12px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;
+  }
   .testimonial-main blockquote { font-size: 16px; line-height: 1.6; margin: 16px 0 20px; font-style: italic; }
   .testimonial-main .attribution { font-size: 13px; opacity: 0.85; }
   .testimonial-strip {
-    border-radius: var(--radius-card); writing-mode: vertical-lr;
-    display: flex; align-items: center; justify-content: center;
-    padding: 20px 14px; font-size: 13px; font-weight: 600; color: white;
+    border-radius: 16px;
+    display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end;
+    padding: 18px 16px; font-size: 13px; font-weight: 600; color: white;
+    position: relative; overflow: hidden; min-height: 200px;
+    writing-mode: horizontal-tb;
+  }
+  .testimonial-strip .strip-company {
+    font-size: 13px; font-weight: 600; line-height: 1.3;
+  }
+  .testimonial-strip .strip-role {
+    font-size: 11px; font-weight: 400; opacity: 0.7; margin-top: 4px;
+  }
+  .testimonial-strip::before {
+    content: '';
+    position: absolute; top: 14px; right: 14px;
+    width: 32px; height: 32px; border-radius: 8px;
+    background: rgba(255,255,255,0.15);
   }
 
   /* FAQ */
@@ -334,7 +351,7 @@
     .alt-feature, .alt-feature.mirror { grid-template-columns: 1fr; gap: 40px; }
     .faq-wrap, .showcase-head { grid-template-columns: 1fr; }
     .testimonial-cards { grid-template-columns: 1fr; }
-    .testimonial-strip { writing-mode: horizontal-tb; }
+    .testimonial-strip { min-height: 120px; }
     .blog-grid { grid-template-columns: 1fr; }
     .footer { grid-template-columns: 1fr 1fr; }
     .mockup-panes { grid-template-columns: 1fr; }
@@ -629,14 +646,26 @@
   </div>
   <div class="testimonial-cards">
     <div class="testimonial-main">
-      <div style="font-size:13px;opacity:0.8;">Featured story</div>
+      <div class="featured-tag">Featured story</div>
       <blockquote>"Our RAG chatbot was confidently citing a refund policy we'd retired eight months ago. They found it in a day, fixed the pipeline in a week, and now every answer ships with an accuracy score."</blockquote>
-      <div class="attribution">— Head of Product, Series A SaaS</div>
+      <div class="attribution">Priya Sharma, VP Engineering · Finovate</div>
     </div>
-    <div class="testimonial-strip" style="background:var(--color-card-teal);">Fintech Startup</div>
-    <div class="testimonial-strip" style="background:var(--color-card-gold);">LegalTech Platform</div>
-    <div class="testimonial-strip" style="background:var(--color-card-rose);">Healthcare AI</div>
-    <div class="testimonial-strip" style="background:var(--color-card-slate);">EduTech Firm</div>
+    <div class="testimonial-strip" style="background:var(--color-card-teal);">
+      <div class="strip-company">MetroHealth AI</div>
+      <div class="strip-role">Clinical Compliance</div>
+    </div>
+    <div class="testimonial-strip" style="background:var(--color-card-gold);">
+      <div class="strip-company">LexBridge Legal</div>
+      <div class="strip-role">Document Review</div>
+    </div>
+    <div class="testimonial-strip" style="background:var(--color-card-rose);">
+      <div class="strip-company">EduScribe</div>
+      <div class="strip-role">Curriculum Q&A</div>
+    </div>
+    <div class="testimonial-strip" style="background:var(--color-card-slate);">
+      <div class="strip-company">PolicyWatch</div>
+      <div class="strip-role">Regulatory Intel</div>
+    </div>
   </div>
 </section>
 
