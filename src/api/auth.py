@@ -62,3 +62,29 @@ async def rate_limit(request: Request, client: str = Depends(verify_api_key)) ->
 
     _rate_limit_buckets[client].append(now)
     return client
+
+
+async def verify_demo_key(request: Request) -> str:
+    """Dependency: validates X-API-Key for /query.
+
+    If no API_KEY is configured, the endpoint is open.
+    If DEMO_API_KEY is configured, accepts keys matching it OR the main api_key.
+    """
+    from src.config.settings import settings
+
+    configured_key = settings.api_key
+    demo_key = settings.demo_api_key
+
+    if not configured_key and not demo_key:
+        return "unauthenticated"
+
+    key = request.headers.get("X-API-Key", "")
+    if configured_key and key == configured_key:
+        return "authenticated"
+    if demo_key and key == demo_key:
+        return "demo"
+
+    if configured_key or demo_key:
+        raise HTTPException(status_code=401, detail="Missing or invalid X-API-Key header")
+
+    return "unauthenticated"

@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en" data-api-base="">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CiteRAG — Live Demo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%233D5C27'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='700' font-family='sans-serif'>C</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-canvas-outer: #B9BFB1;
+    --color-canvas-inner: #F4F5F1;
+    --color-surface-card: #FFFFFF;
+    --color-hero-dark: #141C12;
+    --color-accent: #3D5C27;
+    --color-accent-hover: #2F481E;
+    --color-accent-soft: #DCE8CC;
+    --color-text-primary: #1A1C17;
+    --color-text-secondary: #6E7269;
+    --color-text-inverse: #F4F5F1;
+    --color-text-inverse-dim: #9AA392;
+    --color-border-subtle: #E3E5DC;
+    --color-card-teal: #3F8F7A;
+    --color-card-green: #4A7A35;
+    --color-card-gold: #C2A15C;
+    --color-card-rose: #C08A8A;
+    --color-card-slate: #7A8B8B;
+    --color-illustration-bg: #D8D2C4;
+    --color-verified: #4A7A35;
+    --color-unsupported: #C08A8A;
+    --radius-page: 28px;
+    --radius-card: 22px;
+    --radius-ui: 14px;
+    --radius-btn: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--color-canvas-outer);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .demo-shell {
+    max-width: 1280px;
+    margin: 24px auto;
+    background: var(--color-canvas-inner);
+    border-radius: var(--radius-page);
+    overflow: hidden;
+    min-height: calc(100vh - 48px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .demo-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px;
+    background: white;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  .demo-nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .demo-nav-wordmark { font-size: 16px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+  .demo-nav-badge {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+  }
+  .demo-nav-links { display: flex; gap: 16px; align-items: center; }
+  .demo-nav-links a { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); text-decoration: none; }
+  .demo-nav-links a:hover { color: var(--color-text-primary); }
+
+  .demo-main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 240px 1fr 300px;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  /* Panels */
+  .demo-panel {
+    padding: 20px;
+    overflow-y: auto;
+    border-right: 1px solid var(--color-border-subtle);
+  }
+  .demo-panel:last-child { border-right: none; }
+
+  .panel-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 14px;
+  }
+
+  /* Documents panel */
+  .doc-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    background: white;
+    border: 1px solid var(--color-border-subtle);
+  }
+  .doc-icon {
+    width: 26px;
+    height: 20px;
+    border-radius: 3px;
+    background: var(--color-accent-soft);
+    flex-shrink: 0;
+  }
+  .doc-meta { font-size: 11px; color: var(--color-text-secondary); font-weight: 400; }
+
+  .seed-btn {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    padding: 10px 14px;
+    background: var(--color-accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius-btn);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: inherit;
+  }
+  .seed-btn:hover { background: var(--color-accent-hover); }
+  .seed-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .preset-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .preset-chip {
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    background: white;
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    color: var(--color-text-secondary);
+  }
+  .preset-chip:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  /* Chat panel */
+  .chat-area {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+  }
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .chat-msg {
+    padding: 14px 18px;
+    border-radius: var(--radius-ui);
+    font-size: 14px;
+    line-height: 1.55;
+    max-width: 88%;
+  }
+  .chat-msg.user {
+    background: rgba(0,0,0,0.04);
+    align-self: flex-end;
+    color: var(--color-text-primary);
+    border-bottom-right-radius: 4px;
+  }
+  .chat-msg.ai {
+    background: white;
+    align-self: flex-start;
+    border: 1px solid var(--color-border-subtle);
+    color: var(--color-text-primary);
+  }
+  .chat-msg.loading {
+    opacity: 0.6;
+  }
+  .chat-msg .cite-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    color: var(--color-accent);
+    background: var(--color-accent-soft);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 500;
+    margin: 2px 4px;
+    vertical-align: middle;
+  }
+  .chat-msg .refusal-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-accent);
+    background: var(--color-accent-soft);
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-top: 8px;
+  }
+
+  .chat-input-area {
+    padding: 16px 20px;
+    border-top: 1px solid var(--color-border-subtle);
+    background: white;
+  }
+  .chat-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .chat-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1.5px solid var(--color-border-subtle);
+    border-radius: var(--radius-ui);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+    resize: none;
+    min-height: 44px;
+  }
+  .chat-input:focus { border-color: var(--color-accent); }
+  .send-btn {
+    width: 44px;
+    height: 44px;
+    background: var(--color-accent);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .send-btn:hover { background: var(--color-accent-hover); }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Verification panel */
+  .verify-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .verify-score {
+    text-align: center;
+    padding: 18px;
+    background: white;
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-ui);
+    margin-bottom: 16px;
+  }
+  .verify-score-num {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--color-accent);
+    line-height: 1;
+  }
+  .verify-score-label {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 6px;
+  }
+
+  .verify-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .verify-row.pass {
+    background: rgba(74,122,53,0.06);
+    border: 1px solid rgba(74,122,53,0.2);
+  }
+  .verify-row.fail {
+    background: rgba(192,138,138,0.06);
+    border: 1px solid rgba(192,138,138,0.2);
+  }
+  .verify-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .verify-row.pass .verify-icon { background: rgba(74,122,53,0.15); color: var(--color-verified); }
+  .verify-row.fail .verify-icon { background: rgba(192,138,138,0.15); color: var(--color-unsupported); }
+  .verify-source { font-weight: 600; }
+  .verify-claim { color: var(--color-text-secondary); font-size: 12px; line-height: 1.4; margin-top: 2px; }
+
+  .verify-empty {
+    text-align: center;
+    padding: 40px 16px;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+  }
+  .verify-empty-icon { font-size: 36px; margin-bottom: 10px; opacity: 0.3; }
+
+  /* Banner */
+  .offline-banner {
+    background: #FFF3CD;
+    color: #856404;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 20px;
+    text-align: center;
+    border-bottom: 1px solid #FFE69C;
+  }
+  .offline-banner.hidden { display: none; }
+  .offline-banner a { color: var(--color-accent); font-weight: 600; }
+
+  @media (max-width: 768px) {
+    .demo-main { grid-template-columns: 1fr; }
+    .demo-panel { border-right: none; border-bottom: 1px solid var(--color-border-subtle); }
+    .demo-panel:last-child { border-bottom: none; }
+    .demo-shell { margin: 12px 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="demo-shell">
+
+  <nav class="demo-nav">
+    <div class="demo-nav-brand">
+      <span class="demo-nav-wordmark">CiteRAG</span>
+      <span class="demo-nav-badge">Live Demo</span>
+    </div>
+    <div class="demo-nav-links">
+      <a href="/">← Back to site</a>
+      <span id="health-dot" style="width:8px;height:8px;border-radius:50%;background:#CCC;display:inline-block;" title="API status"></span>
+    </div>
+  </nav>
+
+  <div id="offline-banner" class="offline-banner hidden">
+    ⚠ API unavailable — showing <a href="#" onclick="loadOfflineTranscript()">canned demo transcript</a> (offline preview)
+  </div>
+
+  <div class="demo-main">
+
+    <!-- Documents Panel -->
+    <div class="demo-panel">
+      <div class="panel-label">Documents</div>
+      <div id="doc-list">
+        <div class="verify-empty">
+          <div class="verify-empty-icon">📄</div>
+          No documents indexed yet.
+        </div>
+      </div>
+      <button id="seed-btn" class="seed-btn" onclick="seedDemo()">Load Sample Docs</button>
+
+      <div class="panel-label" style="margin-top:24px;">Try a question</div>
+      <div class="preset-chips">
+        <button class="preset-chip" onclick="submitQuestion('What is the refund policy for annual subscriptions?')">Refund policy</button>
+        <button class="preset-chip" onclick="submitQuestion('Who owns the documents I upload to CiteRAG?')">Data ownership</button>
+        <button class="preset-chip" onclick="submitQuestion('How much does CiteRAG cost and can I get a refund?')">Pricing + refund</button>
+        <button class="preset-chip" onclick="submitQuestion('What is the cell phone number of the head of billing?')">Honest refusal</button>
+        <button class="preset-chip" onclick="submitQuestion('When were the terms of service last updated?')">Terms date</button>
+      </div>
+    </div>
+
+    <!-- Chat Panel -->
+    <div class="demo-panel" style="padding:0; display:flex; flex-direction:column;">
+      <div class="chat-area">
+        <div class="chat-messages" id="chat-messages">
+          <div class="verify-empty" style="padding:60px 20px;">
+            <div class="verify-empty-icon">💬</div>
+            Ask a question or click a preset above.
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <div class="chat-input-row">
+            <textarea id="chat-input" class="chat-input" rows="1" placeholder="Ask a question about the documents..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitQuestion(this.value)}"></textarea>
+            <button id="send-btn" class="send-btn" onclick="submitQuestion(document.getElementById('chat-input').value)">→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Verification Panel -->
+    <div class="demo-panel" id="verify-panel">
+      <div class="verify-header-row">
+        <div class="panel-label" style="margin-bottom:0;">Verification</div>
+      </div>
+      <div class="verify-empty" id="verify-empty">
+        <div class="verify-empty-icon">🔍</div>
+        Citations appear here after you ask a question.
+      </div>
+      <div id="verify-content" style="display:none;">
+        <div class="verify-score">
+          <div class="verify-score-num" id="verify-score-num">—</div>
+          <div class="verify-score-label" id="verify-score-label">Citation Accuracy</div>
+        </div>
+        <div id="verify-details"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const API = localStorage.getItem('citeRAG_apiBase') || window.__API_BASE__ || 'http://localhost:8000';
+  const API_KEY = sessionStorage.getItem('citeRAG_apiKey') || 'demo-public-key';
+  let apiOnline = false;
+
+  function api(path, opts = {}) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (API_KEY) headers['X-API-Key'] = API_KEY;
+    return fetch(`${API}${path}`, { ...opts, headers: { ...headers, ...(opts.headers || {}) } });
+  }
+
+  async function checkHealth() {
+    try {
+      const r = await api('/health');
+      const j = await r.json();
+      apiOnline = true;
+      document.getElementById('health-dot').style.background = '#4A7A35';
+      document.getElementById('offline-banner').classList.add('hidden');
+      if (j.indexed) loadDocList();
+    } catch {
+      apiOnline = false;
+      document.getElementById('health-dot').style.background = '#C08A8A';
+      document.getElementById('offline-banner').classList.remove('hidden');
+    }
+  }
+
+  async function seedDemo() {
+    const btn = document.getElementById('seed-btn');
+    btn.disabled = true;
+    btn.textContent = 'Loading...';
+    try {
+      const r = await api('/demo/seed', { method: 'POST' });
+      const j = await r.json();
+      loadDocList();
+      btn.textContent = `✓ ${j.documents_indexed} docs loaded`;
+      btn.style.background = 'var(--color-verified)';
+    } catch {
+      btn.disabled = false;
+      btn.textContent = 'Load Sample Docs';
+      showOfflineBanner();
+    }
+  }
+
+  async function loadDocList() {
+    try {
+      const r = await api('/health');
+      const j = await r.json();
+      if (j.indexed) {
+        const el = document.getElementById('doc-list');
+        el.innerHTML = '';
+        ['refund-policy.md', 'terms-2026.md', 'pricing.md'].forEach(name => {
+          el.innerHTML += `<div class="doc-item"><div class="doc-icon"></div><div><div style="font-weight:600;font-size:13px;">${name}</div><div class="doc-meta">indexed</div></div></div>`;
+        });
+        document.getElementById('seed-btn').textContent = '✓ 3 docs loaded';
+        document.getElementById('seed-btn').style.background = 'var(--color-verified)';
+        document.getElementById('seed-btn').disabled = true;
+      }
+    } catch {}
+  }
+
+  async function submitQuestion(question) {
+    if (!question.trim()) return;
+    document.getElementById('chat-input').value = '';
+
+    const messagesEl = document.getElementById('chat-messages');
+    const verifyContent = document.getElementById('verify-content');
+    const verifyEmpty = document.getElementById('verify-empty');
+
+    // Add user message
+    messagesEl.innerHTML = messagesEl.innerHTML.replace(/<div class="verify-empty[^>]*>.*?<\/div>/, '');
+    messagesEl.innerHTML += `<div class="chat-msg user">${esc(question)}</div>`;
+    messagesEl.innerHTML += `<div class="chat-msg ai loading" id="loading-msg">Thinking…</div>`;
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    // Reset verification
+    verifyContent.style.display = 'none';
+    verifyEmpty.style.display = 'block';
+    verifyEmpty.querySelector('.verify-empty-icon').textContent = '⏳';
+
+    try {
+      const r = await api('/query', {
+        method: 'POST',
+        body: JSON.stringify({ question }),
+      });
+      const j = await r.json();
+
+      document.getElementById('loading-msg').remove();
+
+      const answer = j.answer || 'No answer returned.';
+      const citations = j.citations || [];
+      const verification = j.verification || {};
+      const isRefusal = verification.is_refusal;
+
+      let answerHtml = renderAnswer(answer, citations, isRefusal);
+      messagesEl.innerHTML += `<div class="chat-msg ai">${answerHtml}</div>`;
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+
+      renderVerification(verification, citations);
+
+      if (!apiOnline) apiOnline = true;
+      document.getElementById('health-dot').style.background = '#4A7A35';
+    } catch (e) {
+      document.getElementById('loading-msg').remove();
+      messagesEl.innerHTML += `<div class="chat-msg ai" style="color:var(--color-unsupported);">Sorry, the API is not reachable. Try loading the offline demo instead.</div>`;
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      showOfflineBanner();
+    }
+  }
+
+  function renderAnswer(answer, citations, isRefusal) {
+    let html = esc(answer);
+    citations.forEach(c => {
+      const tag = `<span class="cite-tag">Source: ${esc(c.source)}, p.${esc(c.page)}</span>`;
+      html = html.replace(new RegExp(`\\[Source:\\s*${escRegex(c.source)}\\s*,?\\s*(?:Page|p\\.?|pg\\.?|Section)?\\s*${escRegex(c.page)}\\s*\\]`, 'gi'), tag);
+    });
+    if (isRefusal) html += '<br><span class="refusal-badge">Honest refusal</span>';
+    return html;
+  }
+
+  function renderVerification(verification, citations) {
+    const el = document.getElementById('verify-content');
+    const empty = document.getElementById('verify-empty');
+    const detailsEl = document.getElementById('verify-details');
+    const scoreNum = document.getElementById('verify-score-num');
+    const scoreLabel = document.getElementById('verify-score-label');
+
+    const total = verification.total_citations || 0;
+    const verified = verification.verified || 0;
+    const acc = verification.accuracy !== undefined ? verification.accuracy : 0;
+
+    scoreNum.textContent = total > 0 ? `${verified}/${total}` : '—';
+    scoreLabel.textContent = verification.is_refusal ? 'Honest Refusal' : 'Citation Accuracy';
+
+    if (verification.is_refusal) {
+      scoreNum.style.color = 'var(--color-accent)';
+      detailsEl.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--color-text-secondary);text-align:center;">The answer correctly refused — no citations to verify. This is a feature, not a failure.</div>';
+    } else if (verification.details && verification.details.length > 0) {
+      let html = '';
+      verification.details.forEach(d => {
+        const cls = d.supported ? 'pass' : 'fail';
+        const icon = d.supported ? '✓' : '✗';
+        html += `<div class="verify-row ${cls}">
+          <div class="verify-icon">${icon}</div>
+          <div>
+            <div class="verify-source">${esc(d.citation?.source || '?')} · p.${esc(d.citation?.page || '?')}</div>
+            <div class="verify-claim">${esc(d.citation?.claim || '')}</div>
+          </div>
+        </div>`;
+      });
+      detailsEl.innerHTML = html;
+      scoreNum.style.color = acc >= 0.9 ? 'var(--color-verified)' : 'var(--color-unsupported)';
+    } else {
+      detailsEl.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--color-text-secondary);text-align:center;">No citations found in the response.</div>';
+    }
+
+    empty.style.display = 'none';
+    el.style.display = 'block';
+  }
+
+  function showOfflineBanner() {
+    document.getElementById('offline-banner').classList.remove('hidden');
+    document.getElementById('health-dot').style.background = '#C08A8A';
+  }
+
+  function loadOfflineTranscript() {
+    const messagesEl = document.getElementById('chat-messages');
+    messagesEl.innerHTML = `
+      <div class="chat-msg user">What is the refund policy for annual subscriptions?</div>
+      <div class="chat-msg ai">
+        <strong>Offline Preview (API unavailable)</strong><br><br>
+        Annual subscriptions can be refunded within 30 days of the initial purchase date. After 30 days, no refunds are available for the remaining months.
+        <span class="cite-tag">Source: refund-policy.md, p.1</span><br><br>
+        Refunds are processed to the original payment method within 5–10 business days.
+        <span class="cite-tag">Source: refund-policy.md, p.1</span>
+      </div>
+    `;
+    document.getElementById('verify-content').style.display = 'block';
+    document.getElementById('verify-empty').style.display = 'none';
+    document.getElementById('verify-score-num').textContent = '2/2';
+    document.getElementById('verify-score-num').style.color = 'var(--color-verified)';
+    document.getElementById('verify-score-label').textContent = 'Citation Accuracy';
+    document.getElementById('verify-details').innerHTML = `
+      <div class="verify-row pass"><div class="verify-icon">✓</div><div><div class="verify-source">refund-policy.md · p.1</div><div class="verify-claim">Annual subscriptions can be refunded within 30 days</div></div></div>
+      <div class="verify-row pass"><div class="verify-icon">✓</div><div><div class="verify-source">refund-policy.md · p.1</div><div class="verify-claim">Refunds are processed to the original payment method</div></div></div>
+    `;
+  }
+
+  function esc(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function escRegex(s) {
+    return (s || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  checkHealth();
+  setInterval(checkHealth, 15000);
+</script>
+</body>
+</html>

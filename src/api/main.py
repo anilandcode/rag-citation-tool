@@ -3,6 +3,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, UploadFile, HTTPException, Body, Depends, Request
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 
 from src.api.schemas import (
@@ -15,6 +16,7 @@ from src.api.schemas import (
     VerificationReport,
 )
 from src.api import state
+from src.config.settings import settings
 from src.ingestion.pipeline import run_ingestion
 from src.retrieval.pipeline import build_full_retrieval_pipeline
 from src.generation.pipeline import (
@@ -25,7 +27,7 @@ from src.generation.pipeline import (
 from src.evaluation.ragas_harness import run_ragas_evaluation
 from src.evaluation.deepeval_harness import evaluate_single_response
 from src.evaluation.audit_report import generate_audit_report, run_audit
-from src.api.auth import verify_api_key, rate_limit
+from src.api.auth import verify_api_key, rate_limit, verify_demo_key
 from src.utils.langfuse_tracer import get_langfuse, init_langfuse_llama_index
 from src.utils.logging import get_logger
 
@@ -41,6 +43,15 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="RAG Citation API", version="0.1.0", lifespan=lifespan)
+
+origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()] if settings.cors_origins else ["*"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.post("/ingest", response_model=IngestResponse)
@@ -82,7 +93,10 @@ async def ingest(
 
 
 @app.post("/query", response_model=QueryResponse)
-async def query(request: QueryRequest):
+async def query(
+    request: QueryRequest,
+    client: str = Depends(verify_demo_key),
+):
     """Query the RAG pipeline and receive a citation-grounded answer with verification."""
     qe = state.get_query_engine()
     if qe is None:
@@ -216,3 +230,42 @@ async def audit_report(
 @app.get("/health")
 async def health():
     return {"status": "ok", "indexed": state.get_nodes() is not None}
+
+
+@app.post("/demo/seed")
+async def demo_seed(
+    client: str = Depends(verify_demo_key),
+):
+    """Seed the demo corpus from data/demo/. Public endpoint for live demo."""
+    from pathlib import Path
+
+    demo_dir = Path("data/demo")
+    if not demo_dir.exists() or not any(demo_dir.iterdir()):
+        raise HTTPException(status_code=400, detail="No demo documents found in data/demo/")
+
+    # Copy demo files to the main data dir so ingestion picks them up
+    data_dir = Path("./data")
+    data_dir.mkdir(exist_ok=True)
+    for f in demo_dir.iterdir():
+        if f.is_file() and f.suffix in (".md", ".txt"):
+            (data_dir / f.name).write_text(f.read_text())
+
+    nodes = run_ingestion(input_dir="./data")
+    state.set_nodes(nodes)
+    log.info("demo_seed_complete", chunks=len(nodes))
+
+    _, hybrid_retriever, reranker = build_full_retrieval_pipeline(nodes)
+    state.set_hybrid_retriever(hybrid_retriever)
+    state.set_reranker(reranker)
+
+    query_engine = build_query_engine(
+        retriever=hybrid_retriever,
+        node_postprocessors=[reranker],
+    )
+    state.set_query_engine(query_engine)
+
+    return IngestResponse(
+        status="ok",
+        documents_indexed=len({n.metadata.get("source") for n in nodes}),
+        chunks_created=len(nodes),
+    )

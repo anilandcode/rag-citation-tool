@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     rerank_top_n: int = 5
     retrieval_top_k: int = 20
 
+    cors_origins: str = ""
+    api_key: str = ""
+    demo_api_key: str = "demo-public-key"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
