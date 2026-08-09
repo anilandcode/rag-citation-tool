@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en" data-api-base="">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CiteRAG — Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%233D5C27'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='700' font-family='sans-serif'>C</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --canvas-outer: #B9BFB1;
+    --canvas-inner: #F4F5F1;
+    --surface: #FFFFFF;
+    --accent: #3D5C27;
+    --accent-hover: #2F481E;
+    --accent-soft: #DCE8CC;
+    --text: #1A1C17;
+    --text-muted: #6E7269;
+    --border: #E3E5DC;
+    --verified: #4A7A35;
+    --unsupported: #C08A8A;
+    --radius: 12px;
+    --radius-lg: 20px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--canvas-outer);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .shell {
+    max-width: 1280px;
+    margin: 24px auto;
+    background: var(--canvas-inner);
+    border-radius: 28px;
+    overflow: hidden;
+    min-height: calc(100vh - 48px);
+    display: flex;
+    flex-direction: column;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-brand { display: flex; align-items: center; gap: 12px; }
+  .topbar-brand span { font-weight: 700; font-size: 16px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .topbar-badge {
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 3px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent);
+  }
+  .topbar-right { display: flex; gap: 16px; align-items: center; }
+  .topbar-right a { font-size: 13px; color: var(--text-muted); text-decoration: none; font-weight: 500; }
+  .topbar-right a:hover { color: var(--text); }
+
+  .tab-bar {
+    display: flex;
+    gap: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 28px;
+  }
+  .tab-btn {
+    padding: 14px 24px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-bottom: 2px solid transparent;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-panel { display: none; flex: 1; overflow-y: auto; }
+  .tab-panel.active { display: flex; }
+
+  /* Corpus tab */
+  .corpus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; padding: 28px; width: 100%; }
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: var(--radius-lg);
+    padding: 48px 28px; text-align: center; cursor: pointer; transition: all 0.15s;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: rgba(61,92,39,0.03); }
+  .upload-zone-icon { font-size: 40px; opacity: 0.3; }
+  .upload-zone-text { font-size: 14px; font-weight: 500; }
+  .upload-zone-hint { font-size: 12px; color: var(--text-muted); }
+  .upload-file-input { display: none; }
+
+  .status-grid { display: flex; flex-direction: column; gap: 14px; }
+  .status-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px;
+  }
+  .status-card-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .status-card-value { font-size: 28px; font-weight: 700; color: var(--accent); }
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+  .status-dot.on { background: var(--verified); }
+  .status-dot.off { background: var(--unsupported); }
+
+  .ingest-btn {
+    display: block; width: 100%; padding: 12px; background: var(--accent); color: white;
+    border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit; margin-top: 12px;
+  }
+  .ingest-btn:hover { background: var(--accent-hover); }
+  .ingest-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .file-list { margin-top: 16px; }
+  .file-item {
+    display: flex; align-items: center; gap: 8px; padding: 8px 12px; font-size: 13px;
+    border-radius: 8px; background: var(--surface); border: 1px solid var(--border); margin-bottom: 6px;
+  }
+  .file-item .remove { margin-left: auto; cursor: pointer; color: var(--text-muted); font-size: 16px; background: none; border: none; }
+
+  /* Playground tab */
+  .playground-grid { display: grid; grid-template-columns: 240px 1fr 300px; gap: 0; width: 100%; height: 100%; }
+  .play-panel {
+    padding: 20px; overflow-y: auto; border-right: 1px solid var(--border);
+  }
+  .play-panel:last-child { border-right: none; }
+
+  .panel-label {
+    font-size: 10px; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px;
+  }
+
+  .chat-area { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+  .chat-msgs {
+    flex: 1; overflow-y: auto; padding: 16px 20px 8px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .chat-msg { padding: 14px 18px; border-radius: var(--radius); font-size: 14px; line-height: 1.55; max-width: 88%; }
+  .chat-msg.user { background: rgba(0,0,0,0.04); align-self: flex-end; color: var(--text); }
+  .chat-msg.ai { background: var(--surface); align-self: flex-start; border: 1px solid var(--border); }
+  .chat-msg .cite-tag {
+    display: inline-flex; align-items: center; gap: 3px; font-size: 11px;
+    color: var(--accent); background: var(--accent-soft);
+    padding: 2px 7px; border-radius: 4px; font-weight: 500; margin: 2px 4px;
+  }
+  .chat-input-row { display: flex; gap: 10px; padding: 16px 20px; background: var(--surface); border-top: 1px solid var(--border); }
+  .chat-input-row input {
+    flex: 1; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: var(--radius);
+    font-size: 14px; font-family: inherit; outline: none; min-height: 44px;
+  }
+  .chat-input-row input:focus { border-color: var(--accent); }
+  .send-btn {
+    width: 44px; height: 44px; background: var(--accent); color: white;
+    border: none; border-radius: var(--radius); cursor: pointer; font-size: 18px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .send-btn:hover { background: var(--accent-hover); }
+
+  .verify-score-card {
+    text-align: center; padding: 18px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px;
+  }
+  .verify-score-num { font-size: 36px; font-weight: 700; color: var(--accent); line-height: 1; }
+  .verify-score-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 6px; }
+
+  .v-row {
+    display: flex; align-items: flex-start; gap: 10px; padding: 12px;
+    border-radius: 10px; font-size: 13px; margin-bottom: 8px;
+  }
+  .v-row.pass { background: rgba(74,122,53,0.06); border: 1px solid rgba(74,122,53,0.2); }
+  .v-row.fail { background: rgba(192,138,138,0.06); border: 1px solid rgba(192,138,138,0.2); }
+  .v-icon { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .v-row.pass .v-icon { background: rgba(74,122,53,0.15); color: var(--verified); }
+  .v-row.fail .v-icon { background: rgba(192,138,138,0.15); color: var(--unsupported); }
+
+  .empty-state { text-align: center; padding: 40px 16px; color: var(--text-muted); font-size: 13px; }
+  .empty-state-icon { font-size: 36px; margin-bottom: 10px; opacity: 0.3; }
+
+  /* Report tab */
+  .report-grid { padding: 28px; width: 100%; max-width: 900px; margin: 0 auto; }
+  .report-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px;
+  }
+  .report-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .report-block { text-align: center; padding: 24px; border-radius: 16px; }
+  .report-block.before { background: #F8F6F2; }
+  .report-block.after { background: #EDF2E8; }
+  .report-block-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 8px; }
+  .report-block-val { font-size: 42px; font-weight: 700; }
+  .report-block-val.good { color: var(--accent); }
+
+  /* Settings tab */
+  .settings-grid { padding: 28px; max-width: 640px; width: 100%; }
+  .setting-row { margin-bottom: 20px; }
+  .setting-row label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .setting-row input, .setting-row select {
+    width: 100%; padding: 10px 14px; border: 1.5px solid var(--border);
+    border-radius: var(--radius); font-size: 14px; font-family: inherit; outline: none;
+  }
+  .setting-row input:focus { border-color: var(--accent); }
+  .setting-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .save-btn {
+    padding: 12px 28px; background: var(--accent); color: white;
+    border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+  }
+  .save-btn:hover { background: var(--accent-hover); }
+
+  @media (max-width: 768px) {
+    .corpus-grid, .playground-grid { grid-template-columns: 1fr; }
+    .play-panel { border-right: none; border-bottom: 1px solid var(--border); }
+    .play-panel:last-child { border-bottom: none; }
+    .tab-btn { padding: 10px 14px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <span>CiteRAG</span>
+    <span class="topbar-badge">Dashboard</span>
+  </div>
+  <div class="topbar-right">
+    <span id="health-indicator" style="font-size:12px;display:flex;align-items:center;"><span class="status-dot off"></span> API offline</span>
+    <a href="/">← Site</a>
+    <a href="/demo">Demo</a>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('corpus')">📄 Corpus</button>
+  <button class="tab-btn" onclick="switchTab('playground')">💬 Playground</button>
+  <button class="tab-btn" onclick="switchTab('report')">📊 Report</button>
+  <button class="tab-btn" onclick="switchTab('settings')">⚙ Settings</button>
+</div>
+
+<!-- Corpus Tab -->
+<div class="tab-panel active" id="tab-corpus">
+  <div class="corpus-grid">
+    <div>
+      <div class="panel-label">Upload Documents</div>
+      <div class="upload-zone" id="dropzone" onclick="document.getElementById('file-input').click()">
+        <div class="upload-zone-icon">📁</div>
+        <div class="upload-zone-text">Drop files or click to browse</div>
+        <div class="upload-zone-hint">PDF, DOCX, MD, TXT</div>
+        <input type="file" id="file-input" class="upload-file-input" multiple accept=".pdf,.docx,.md,.txt" onchange="addFiles(this.files)">
+      </div>
+      <div class="file-list" id="file-list"></div>
+      <button class="ingest-btn" id="ingest-btn" onclick="ingestFiles()" disabled>Upload to Index</button>
+    </div>
+    <div>
+      <div class="panel-label">Index Status</div>
+      <div class="status-grid">
+        <div class="status-card">
+          <div class="status-card-label">Documents Indexed</div>
+          <div class="status-card-value" id="doc-count">0</div>
+        </div>
+        <div class="status-card">
+          <div class="status-card-label">Chunks Created</div>
+          <div class="status-card-value" id="chunk-count">0</div>
+        </div>
+        <div class="status-card">
+          <div class="status-card-label">API Health</div>
+          <div style="font-size:14px;margin-top:6px;"><span class="status-dot off" id="health-dot"></span> <span id="health-text">Unreachable</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Playground Tab -->
+<div class="tab-panel" id="tab-playground">
+  <div class="playground-grid">
+    <div class="play-panel">
+      <div class="panel-label">Documents</div>
+      <div id="play-doc-list" class="empty-state"><div class="empty-state-icon">📄</div>Upload documents in the Corpus tab first</div>
+    </div>
+    <div class="play-panel" style="padding:0; display:flex; flex-direction:column;">
+      <div class="chat-area">
+        <div class="chat-msgs" id="play-chat-msgs">
+          <div class="empty-state" style="padding:60px 20px;"><div class="empty-state-icon">💬</div>Ask a question to get started</div>
+        </div>
+        <div class="chat-input-row">
+          <input id="play-chat-input" placeholder="Ask a question about your documents..." onkeydown="if(event.key==='Enter'){submitPlaygroundQuery()}">
+          <button class="send-btn" onclick="submitPlaygroundQuery()">→</button>
+        </div>
+      </div>
+    </div>
+    <div class="play-panel" id="play-verify-panel">
+      <div class="panel-label">Verification</div>
+      <div class="empty-state" id="play-verify-empty"><div class="empty-state-icon">🔍</div>Citations appear here</div>
+      <div id="play-verify-content" style="display:none;">
+        <div class="verify-score-card">
+          <div class="verify-score-num" id="play-score-num">—</div>
+          <div class="verify-score-label" id="play-score-label">Citation Accuracy</div>
+        </div>
+        <div id="play-verify-details"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Report Tab -->
+<div class="tab-panel" id="tab-report">
+  <div class="report-grid">
+    <div class="panel-label" style="margin-bottom:16px;">Audit Report</div>
+    <div id="report-content">
+      <div class="report-card">
+        <div class="report-metrics">
+          <div class="report-block before">
+            <div class="report-block-label">Baseline</div>
+            <div class="report-block-val" style="color:#B08A5C;">0.72</div>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">Faithfulness</div>
+          </div>
+          <div class="report-block after">
+            <div class="report-block-label">Optimized</div>
+            <div class="report-block-val good">0.94</div>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">Faithfulness</div>
+          </div>
+        </div>
+        <div style="margin-top:28px;">
+          <div style="font-size:14px;font-weight:600;margin-bottom:12px;">Improvements applied</div>
+          <ul style="list-style:none;padding:0;font-size:13px;color:var(--text-muted);">
+            <li style="padding:6px 0;display:flex;align-items:center;gap:8px;"><span style="color:var(--accent);font-weight:700;">✓</span> Hybrid search (vector + BM25)</li>
+            <li style="padding:6px 0;display:flex;align-items:center;gap:8px;"><span style="color:var(--accent);font-weight:700;">✓</span> Cohere cross-encoder reranking</li>
+            <li style="padding:6px 0;display:flex;align-items:center;gap:8px;"><span style="color:var(--accent);font-weight:700;">✓</span> Semantic chunking strategy</li>
+            <li style="padding:6px 0;display:flex;align-items:center;gap:8px;"><span style="color:var(--accent);font-weight:700;">✓</span> Metadata enrichment for source tracking</li>
+          </ul>
+        </div>
+        <div style="margin-top:16px;font-size:11px;color:var(--text-muted);padding:8px 12px;background:#FFF8E8;border-radius:8px;border:1px solid #FFE69C;">
+          ⚠ Sample report — operator-assisted metrics. Real measured audit available in v0.2.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Tab -->
+<div class="tab-panel" id="tab-settings">
+  <div class="settings-grid">
+    <div class="panel-label" style="margin-bottom:16px;">API Connection</div>
+    <div class="setting-row">
+      <label>API Base URL</label>
+      <input id="setting-api-url" value="http://localhost:8000" placeholder="http://localhost:8000">
+      <div class="setting-hint">Where your FastAPI backend is running</div>
+    </div>
+    <div class="setting-row">
+      <label>API Key</label>
+      <input id="setting-api-key" type="password" placeholder="demo-public-key">
+      <div class="setting-hint">Sent as X-API-Key header. Leave empty for open mode.</div>
+    </div>
+    <div class="setting-row">
+      <label>Theme</label>
+      <select id="setting-theme">
+        <option value="light" selected>Light</option>
+        <option value="dark">Dark (coming soon)</option>
+      </select>
+    </div>
+    <button class="save-btn" onclick="saveSettings()">Save Settings</button>
+    <div id="settings-saved" style="display:none;margin-top:10px;font-size:13px;color:var(--accent);">✓ Settings saved</div>
+  </div>
+</div>
+
+</div><!-- /shell -->
+
+<script>
+  // Global state
+  let apiBase = localStorage.getItem('citeRAG_apiBase') || 'http://localhost:8000';
+  let apiKey = sessionStorage.getItem('citeRAG_apiKey') || 'demo-public-key';
+  let selectedFiles = [];
+  let apiOnline = false;
+
+  function api(path, opts = {}) {
+    const headers = {};
+    if (apiKey) headers['X-API-Key'] = apiKey;
+    if (!(opts.body instanceof FormData)) headers['Content-Type'] = 'application/json';
+    return fetch(`${apiBase}${path}`, { ...opts, headers: { ...headers, ...(opts.headers || {}) } });
+  }
+
+  // Tab switching
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector(`.tab-btn[onclick*="${name}"]`).classList.add('active');
+    document.getElementById(`tab-${name}`).classList.add('active');
+    if (name === 'corpus' || name === 'playground') checkHealth();
+  }
+
+  // Health
+  async function checkHealth() {
+    try {
+      const r = await api('/health');
+      const j = await r.json();
+      apiOnline = true;
+      document.getElementById('health-dot').className = 'status-dot on';
+      document.getElementById('health-text').textContent = j.indexed ? 'Indexed' : 'Ready';
+      document.getElementById('health-indicator').innerHTML = '<span class="status-dot on"></span> API online';
+      updateStatusCards(j.indexed);
+      return j;
+    } catch {
+      apiOnline = false;
+      document.getElementById('health-dot').className = 'status-dot off';
+      document.getElementById('health-text').textContent = 'Unreachable';
+      document.getElementById('health-indicator').innerHTML = '<span class="status-dot off"></span> API offline';
+      return null;
+    }
+  }
+
+  function updateStatusCards(indexed) {
+    if (indexed) {
+      document.getElementById('doc-count').textContent = '3';
+      document.getElementById('chunk-count').textContent = '—';
+      document.getElementById('play-doc-list').innerHTML = '<div style="font-size:13px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;">📄 refund-policy.md</div><div style="font-size:13px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;">📄 terms-2026.md</div><div style="font-size:13px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;">📄 pricing.md</div>';
+    }
+  }
+
+  // Upload
+  function addFiles(fileList) {
+    selectedFiles = [...selectedFiles, ...Array.from(fileList)];
+    renderFileList();
+  }
+
+  function removeFile(idx) {
+    selectedFiles.splice(idx, 1);
+    renderFileList();
+  }
+
+  function renderFileList() {
+    const el = document.getElementById('file-list');
+    const btn = document.getElementById('ingest-btn');
+    if (selectedFiles.length === 0) { el.innerHTML = ''; btn.disabled = true; return; }
+    btn.disabled = false;
+    el.innerHTML = selectedFiles.map((f, i) =>
+      `<div class="file-item"><span>📄</span> ${esc(f.name)} <span style="color:var(--text-muted);font-size:11px;">(${(f.size/1024).toFixed(0)} KB)</span><button class="remove" onclick="removeFile(${i})">×</button></div>`
+    ).join('');
+  }
+
+  // Drop zone
+  const dz = document.getElementById('dropzone');
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+  dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag'); addFiles(e.dataTransfer.files); });
+
+  async function ingestFiles() {
+    if (selectedFiles.length === 0) return;
+    const btn = document.getElementById('ingest-btn');
+    btn.disabled = true; btn.textContent = 'Indexing...';
+    const form = new FormData();
+    selectedFiles.forEach(f => form.append('files', f));
+    try {
+      const r = await fetch(`${apiBase}/ingest`, { method: 'POST', headers: apiKey ? {'X-API-Key': apiKey} : {}, body: form });
+      const j = await r.json();
+      document.getElementById('doc-count').textContent = j.documents_indexed || 0;
+      document.getElementById('chunk-count').textContent = j.chunks_created || 0;
+      btn.textContent = `✓ ${j.documents_indexed} docs indexed`;
+      btn.style.background = 'var(--verified)';
+      selectedFiles = []; renderFileList();
+      checkHealth();
+    } catch (e) {
+      btn.disabled = false; btn.textContent = 'Upload to Index';
+      alert('Upload failed. Check API connection in Settings.');
+    }
+  }
+
+  // Playground
+  async function submitPlaygroundQuery() {
+    const input = document.getElementById('play-chat-input');
+    const question = input.value.trim();
+    if (!question) return;
+    input.value = '';
+
+    const msgsEl = document.getElementById('play-chat-msgs');
+    msgsEl.innerHTML = msgsEl.innerHTML.replace(/<div class="empty-state[^>]*>.*?<\/div>/, '');
+    msgsEl.innerHTML += `<div class="chat-msg user">${esc(question)}</div><div class="chat-msg ai" id="play-loading">Thinking…</div>`;
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+
+    try {
+      const r = await api('/query', { method: 'POST', body: JSON.stringify({ question }) });
+      const j = await r.json();
+      document.getElementById('play-loading').remove();
+
+      const answer = j.answer || '';
+      const citations = j.citations || [];
+      const verification = j.verification || {};
+      let html = esc(answer);
+      citations.forEach(c => {
+        const tag = `<span class="cite-tag">Source: ${esc(c.source)}, p.${esc(c.page)}</span>`;
+        const re = new RegExp(`\\[Source:\\s*${escRx(c.source)}\\s*,?\\s*(?:Page|p\\.?|pg\\.?|Section)?\\s*${escRx(c.page)}\\s*\\]`, 'gi');
+        html = html.replace(re, tag);
+      });
+      msgsEl.innerHTML += `<div class="chat-msg ai">${html}</div>`;
+      msgsEl.scrollTop = msgsEl.scrollHeight;
+      renderPlayVerification(verification);
+    } catch {
+      document.getElementById('play-loading').remove();
+      msgsEl.innerHTML += `<div class="chat-msg ai" style="color:var(--unsupported);">API unreachable. Check Settings.</div>`;
+      msgsEl.scrollTop = msgsEl.scrollHeight;
+    }
+  }
+
+  function renderPlayVerification(v) {
+    document.getElementById('play-verify-empty').style.display = 'none';
+    document.getElementById('play-verify-content').style.display = 'block';
+    const scoreNum = document.getElementById('play-score-num');
+    const scoreLabel = document.getElementById('play-score-label');
+
+    if (v.is_refusal) {
+      scoreNum.textContent = '—'; scoreNum.style.color = 'var(--accent)';
+      scoreLabel.textContent = 'Honest Refusal';
+      document.getElementById('play-verify-details').innerHTML = '<div class="empty-state" style="padding:16px;">Correct refusal — no citations to verify. This is a feature.</div>';
+      return;
+    }
+    const total = v.total_citations || 0;
+    const verified = v.verified || 0;
+    scoreNum.textContent = total > 0 ? `${verified}/${total}` : '—';
+    scoreLabel.textContent = 'Citation Accuracy';
+    scoreNum.style.color = (verified/total >= 0.9) ? 'var(--verified)' : 'var(--unsupported)';
+
+    if (v.details && v.details.length > 0) {
+      document.getElementById('play-verify-details').innerHTML = v.details.map(d => {
+        const cls = d.supported ? 'pass' : 'fail';
+        return `<div class="v-row ${cls}"><div class="v-icon">${d.supported ? '✓' : '✗'}</div><div><div style="font-weight:600;font-size:13px;">${esc(d.citation?.source||'?')} · p.${esc(d.citation?.page||'?')}</div><div style="font-size:12px;color:var(--text-muted);">${esc(d.citation?.claim||'')}</div></div></div>`;
+      }).join('');
+    }
+  }
+
+  // Settings
+  function loadSettings() {
+    document.getElementById('setting-api-url').value = apiBase;
+    document.getElementById('setting-api-key').value = apiKey;
+  }
+  function saveSettings() {
+    apiBase = document.getElementById('setting-api-url').value.trim();
+    apiKey = document.getElementById('setting-api-key').value.trim();
+    localStorage.setItem('citeRAG_apiBase', apiBase);
+    if (apiKey) sessionStorage.setItem('citeRAG_apiKey', apiKey);
+    else sessionStorage.removeItem('citeRAG_apiKey');
+    const el = document.getElementById('settings-saved');
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 2000);
+    checkHealth();
+  }
+
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function escRx(s) { return (s||'').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+  // Init
+  loadSettings();
+  checkHealth();
+  setInterval(checkHealth, 20000);
+</script>
+</body>
+</html>

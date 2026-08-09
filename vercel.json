@@ -5,8 +5,8 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/demo", "destination": "/demo.html" },
-    { "source": "/api/(.*)", "destination": "/api-placeholder.html" },
-    { "source": "/((?!demo\\.html$).*)", "destination": "/index.html" }
+    { "source": "/app", "destination": "/app.html" },
+    { "source": "/((?!demo\\.html$|app\\.html$).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
