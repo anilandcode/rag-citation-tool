@@ -234,6 +234,21 @@
     .shell { margin: 0; box-shadow: none; }
     .chat-input-row input { font-size: 16px; }
     .setting-row input, .setting-row select { font-size: 16px; }
+    .topbar { padding: 8px 16px; flex-wrap: wrap; gap: 8px; }
+    .topbar-brand { order: 0; }
+    .topbar-right { order: 2; width: 100%; justify-content: flex-end; font-size: 11px; }
+    .tab-bar { padding: 0 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tab-btn { white-space: nowrap; flex-shrink: 0; }
+    .status-card-value { font-size: 22px; }
+    .report-block-val { font-size: 32px; }
+  }
+  @media (max-width: 374px) {
+    .tab-btn { padding: 8px 10px; font-size: 11px; }
+    .corpus-grid, .settings-grid { padding: 16px; }
+    .upload-zone { padding: 28px 16px; }
+  }
+  @media (min-width: 1400px) {
+    .shell { max-width: 1280px; }
   }
 </style>
 </head>
