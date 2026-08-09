@@ -1,9 +1,12 @@
 """FastAPI application with ingestion, query, and evaluation endpoints."""
 
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, UploadFile, HTTPException, Body, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.concurrency import run_in_threadpool
 from typing import Optional
 
 from src.api.schemas import (
@@ -71,11 +74,11 @@ async def ingest(
             file_path = data_dir / Path(file.filename or "uploaded_doc").name
             file_path.write_bytes(content)
 
-    nodes = run_ingestion(input_dir="./data")
+    nodes = await run_in_threadpool(run_ingestion, input_dir="./data")
     state.set_nodes(nodes)
     log.info("ingest_complete", chunks=len(nodes))
 
-    _, hybrid_retriever, reranker = build_full_retrieval_pipeline(nodes)
+    _, hybrid_retriever, reranker = await run_in_threadpool(build_full_retrieval_pipeline, nodes)
     state.set_hybrid_retriever(hybrid_retriever)
     state.set_reranker(reranker)
 
@@ -106,7 +109,7 @@ async def query(
     langfuse = get_langfuse()
     trace = langfuse.trace(name="rag-query", input={"question": request.question})
 
-    response = qe.query(request.question)
+    response = await run_in_threadpool(qe.query, request.question)
     source_nodes = response.source_nodes
 
     citations = extract_citations(str(response))
@@ -180,7 +183,7 @@ async def evaluate_single(request: QueryRequest):
     if qe is None:
         raise HTTPException(status_code=400, detail="No documents indexed. Call /ingest first.")
 
-    response = qe.query(request.question)
+    response = await run_in_threadpool(qe.query, request.question)
     context = [node.text for node in response.source_nodes]
 
     results = evaluate_single_response(
