@@ -35,7 +35,6 @@
   :focus-visible { outline: 2px dashed var(--accent); outline-offset: 3px; border-radius: 4px; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
-  /* Spinner */
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner {
     display: inline-block; width: 16px; height: 16px;
@@ -50,7 +49,6 @@
   }
   .error-banner.visible { display: block; }
 
-  /* Shell — flat tool surface, not marketing sheet */
   .shell {
     max-width: 1280px; margin: 0 auto;
     background: var(--canvas-inner);
@@ -87,7 +85,6 @@
   .tab-panel { display: none; flex: 1; overflow-y: auto; transition: opacity 0.2s; opacity: 0; }
   .tab-panel.active { display: flex; opacity: 1; }
 
-  /* Corpus tab */
   .corpus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; padding: 28px; width: 100%; }
   .upload-zone {
     border: 2px dashed var(--border); border-radius: var(--radius-lg);
@@ -127,7 +124,6 @@
   }
   .file-item .remove { margin-left: auto; cursor: pointer; color: var(--text-muted); font-size: 16px; background: none; border: none; }
 
-  /* Playground tab */
   .playground-grid { display: grid; grid-template-columns: 240px 1fr 300px; gap: 0; width: 100%; height: 100%; }
   .play-panel { padding: 20px; overflow-y: auto; border-right: 1px solid var(--border); }
   .play-panel:last-child { border-right: none; }
@@ -173,7 +169,6 @@
   }
   .send-btn:hover { background: var(--accent-hover); }
   .send-btn:active { background: #253A15; }
-  .send-btn .arrow-icon { font-size: 18px; line-height: 1; }
 
   .verify-score-card {
     text-align: center; padding: 18px; background: var(--surface);
@@ -195,7 +190,6 @@
   .empty-state { text-align: center; padding: 40px 16px; color: var(--text-muted); font-size: 13px; }
   .empty-state-icon { font-size: 28px; margin-bottom: 8px; opacity: 0.15; }
 
-  /* Report tab */
   .report-grid { padding: 28px; width: 100%; max-width: 900px; margin: 0 auto; }
   .report-card {
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px;
@@ -208,7 +202,6 @@
   .report-block-val { font-size: 42px; font-weight: 700; }
   .report-block-val.good { color: var(--accent); }
 
-  /* Settings tab */
   .settings-grid { padding: 28px; max-width: 640px; width: 100%; }
   .setting-row { margin-bottom: 20px; }
   .setting-row label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; text-transform: none; }
@@ -235,8 +228,7 @@
     .chat-input-row input { font-size: 16px; }
     .setting-row input, .setting-row select { font-size: 16px; }
     .topbar { padding: 8px 16px; flex-wrap: wrap; gap: 8px; }
-    .topbar-brand { order: 0; }
-    .topbar-right { order: 2; width: 100%; justify-content: flex-end; font-size: 11px; }
+    .topbar-right { width: 100%; justify-content: flex-end; font-size: 11px; }
     .tab-bar { padding: 0 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .tab-btn { white-space: nowrap; flex-shrink: 0; }
     .status-card-value { font-size: 22px; }
@@ -267,25 +259,25 @@
   </div>
 </div>
 
-<div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('corpus')">📄 Corpus</button>
-  <button class="tab-btn" onclick="switchTab('playground')">💬 Playground</button>
-  <button class="tab-btn" onclick="switchTab('report')">📊 Report</button>
-  <button class="tab-btn" onclick="switchTab('settings')">⚙ Settings</button>
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchTab('corpus')">Corpus</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('playground')">Playground</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('report')">Report</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('settings')">Settings</button>
 </div>
 
-<!-- Corpus Tab -->
 <div class="tab-panel active" id="tab-corpus">
   <div class="corpus-grid">
     <div>
       <div class="panel-label">Upload Documents</div>
       <div class="upload-zone" id="dropzone" onclick="document.getElementById('file-input').click()">
-        <div class="upload-zone-icon">📁</div>
+        <div class="upload-zone-symbol">+</div>
         <div class="upload-zone-text">Drop files or click to browse</div>
         <div class="upload-zone-hint">PDF, DOCX, MD, TXT</div>
         <input type="file" id="file-input" class="upload-file-input" multiple accept=".pdf,.docx,.md,.txt" onchange="addFiles(this.files)">
       </div>
       <div class="file-list" id="file-list"></div>
+      <div id="ingest-error" class="error-banner"></div>
       <button class="ingest-btn" id="ingest-btn" onclick="ingestFiles()" disabled>Upload to Index</button>
     </div>
     <div>
@@ -293,11 +285,11 @@
       <div class="status-grid">
         <div class="status-card">
           <div class="status-card-label">Documents Indexed</div>
-          <div class="status-card-value" id="doc-count">0</div>
+          <div class="status-card-value empty" id="doc-count">&mdash;</div>
         </div>
         <div class="status-card">
           <div class="status-card-label">Chunks Created</div>
-          <div class="status-card-value" id="chunk-count">0</div>
+          <div class="status-card-value empty" id="chunk-count">&mdash;</div>
         </div>
         <div class="status-card">
           <div class="status-card-label">API Health</div>
@@ -308,17 +300,16 @@
   </div>
 </div>
 
-<!-- Playground Tab -->
 <div class="tab-panel" id="tab-playground">
   <div class="playground-grid">
     <div class="play-panel">
-      <div class="panel-label">Documents</div>
-      <div id="play-doc-list" class="empty-state"><div class="empty-state-icon">📄</div>Upload documents in the Corpus tab first</div>
+      <div class="panel-label uppercase">Documents</div>
+      <div id="play-doc-list" class="empty-state"><div class="empty-state-icon">+</div>Upload documents in the Corpus tab first</div>
     </div>
     <div class="play-panel" style="padding:0; display:flex; flex-direction:column;">
       <div class="chat-area">
         <div class="chat-msgs" id="play-chat-msgs">
-          <div class="empty-state" style="padding:60px 20px;"><div class="empty-state-icon">💬</div>Ask a question to get started</div>
+          <div class="empty-state" style="padding:60px 20px;"><div class="empty-state-icon">?</div>Ask a question to get started</div>
         </div>
         <div class="chat-input-row">
           <input id="play-chat-input" placeholder="Ask a question about your documents..." onkeydown="if(event.key==='Enter'){submitPlaygroundQuery()}">
@@ -327,11 +318,11 @@
       </div>
     </div>
     <div class="play-panel" id="play-verify-panel">
-      <div class="panel-label">Verification</div>
-      <div class="empty-state" id="play-verify-empty"><div class="empty-state-icon">🔍</div>Citations appear here</div>
+      <div class="panel-label uppercase">Verification</div>
+      <div class="empty-state" id="play-verify-empty"><div class="empty-state-icon">✓</div>Citations appear here</div>
       <div id="play-verify-content" style="display:none;">
         <div class="verify-score-card">
-          <div class="verify-score-num" id="play-score-num">—</div>
+          <div class="verify-score-num" id="play-score-num">&mdash;</div>
           <div class="verify-score-label" id="play-score-label">Citation Accuracy</div>
         </div>
         <div id="play-verify-details"></div>
@@ -340,7 +331,6 @@
   </div>
 </div>
 
-<!-- Report Tab -->
 <div class="tab-panel" id="tab-report">
   <div class="report-grid">
     <div class="panel-label" style="margin-bottom:16px;">Audit Report</div>
@@ -375,7 +365,6 @@
   </div>
 </div>
 
-<!-- Settings Tab -->
 <div class="tab-panel" id="tab-settings">
   <div class="settings-grid">
     <div class="panel-label" style="margin-bottom:16px;">API Connection</div>
@@ -401,10 +390,9 @@
   </div>
 </div>
 
-</div><!-- /shell -->
+</div>
 
 <script>
-  // Global state
   let apiBase = localStorage.getItem('citeRAG_apiBase') || 'http://localhost:8000';
   let apiKey = sessionStorage.getItem('citeRAG_apiKey') || 'demo-public-key';
   let selectedFiles = [];
@@ -417,7 +405,6 @@
     return fetch(`${apiBase}${path}`, { ...opts, headers: { ...headers, ...(opts.headers || {}) } });
   }
 
-  // Tab switching
   function switchTab(name) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -429,7 +416,6 @@
     if (name === 'corpus' || name === 'playground') checkHealth();
   }
 
-  // Health
   async function checkHealth() {
     try {
       const r = await api('/health');
@@ -454,12 +440,11 @@
     const ccEl = document.getElementById('chunk-count');
     if (indexed) {
       dcEl.textContent = '3'; dcEl.classList.remove('empty');
-      ccEl.textContent = '—'; ccEl.classList.remove('empty');
+      ccEl.textContent = '\u2014'; ccEl.classList.remove('empty');
       document.getElementById('play-doc-list').innerHTML = '<div class="doc-list-item">refund-policy.md</div><div class="doc-list-item">terms-2026.md</div><div class="doc-list-item">pricing.md</div>';
     }
   }
 
-  // Upload
   function addFiles(fileList) {
     selectedFiles = [...selectedFiles, ...Array.from(fileList)];
     renderFileList();
@@ -476,11 +461,10 @@
     if (selectedFiles.length === 0) { el.innerHTML = ''; btn.disabled = true; return; }
     btn.disabled = false;
     el.innerHTML = selectedFiles.map((f, i) =>
-      `<div class="file-item"><span>📄</span> ${esc(f.name)} <span style="color:var(--text-muted);font-size:11px;">(${(f.size/1024).toFixed(0)} KB)</span><button class="remove" onclick="removeFile(${i})">×</button></div>`
+      '<div class="file-item">' + esc(f.name) + ' <span style="color:var(--text-muted);font-size:11px;">(' + (f.size/1024).toFixed(0) + ' KB)</span><button class="remove" onclick="removeFile(' + i + ')">\u00d7</button></div>'
     ).join('');
   }
 
-  // Drop zone
   const dz = document.getElementById('dropzone');
   dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
   dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
@@ -489,25 +473,32 @@
   async function ingestFiles() {
     if (selectedFiles.length === 0) return;
     const btn = document.getElementById('ingest-btn');
-    btn.disabled = true; btn.textContent = 'Indexing...';
+    const errEl = document.getElementById('ingest-error');
+    errEl.classList.remove('visible');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Indexing...';
     const form = new FormData();
     selectedFiles.forEach(f => form.append('files', f));
     try {
       const r = await fetch(`${apiBase}/ingest`, { method: 'POST', headers: apiKey ? {'X-API-Key': apiKey} : {}, body: form });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
       const j = await r.json();
       document.getElementById('doc-count').textContent = j.documents_indexed || 0;
+      document.getElementById('doc-count').classList.remove('empty');
       document.getElementById('chunk-count').textContent = j.chunks_created || 0;
-      btn.textContent = `✓ ${j.documents_indexed} docs indexed`;
+      document.getElementById('chunk-count').classList.remove('empty');
+      btn.textContent = 'Done';
       btn.style.background = 'var(--verified)';
       selectedFiles = []; renderFileList();
+      setTimeout(() => { btn.textContent = 'Upload to Index'; btn.style.background = ''; btn.disabled = true; }, 3000);
       checkHealth();
     } catch (e) {
-      btn.disabled = false; btn.textContent = 'Upload to Index';
-      alert('Upload failed. Check API connection in Settings.');
+      btn.disabled = false; btn.innerHTML = 'Upload to Index';
+      errEl.textContent = 'Upload failed. Check your API connection in Settings and try again.';
+      errEl.classList.add('visible');
     }
   }
 
-  // Playground
   async function submitPlaygroundQuery() {
     const input = document.getElementById('play-chat-input');
     const question = input.value.trim();
@@ -516,7 +507,7 @@
 
     const msgsEl = document.getElementById('play-chat-msgs');
     msgsEl.innerHTML = msgsEl.innerHTML.replace(/<div class="empty-state[^>]*>.*?<\/div>/, '');
-    msgsEl.innerHTML += `<div class="chat-msg user">${esc(question)}</div><div class="chat-msg ai" id="play-loading">Thinking…</div>`;
+    msgsEl.innerHTML += '<div class="chat-msg user">' + esc(question) + '</div><div class="chat-msg ai loading" id="play-loading">Analyzing documents\u2026</div>';
     msgsEl.scrollTop = msgsEl.scrollHeight;
 
     try {
@@ -529,16 +520,16 @@
       const verification = j.verification || {};
       let html = esc(answer);
       citations.forEach(c => {
-        const tag = `<span class="cite-tag">Source: ${esc(c.source)}, p.${esc(c.page)}</span>`;
-        const re = new RegExp(`\\[Source:\\s*${escRx(c.source)}\\s*,?\\s*(?:Page|p\\.?|pg\\.?|Section)?\\s*${escRx(c.page)}\\s*\\]`, 'gi');
+        const tag = '<span class="cite-tag">Source: ' + esc(c.source) + ', p.' + esc(c.page) + '</span>';
+        const re = new RegExp('\\[Source:\\s*' + escRx(c.source) + '\\s*,?\\s*(?:Page|p\\.?|pg\\.?|Section)?\\s*' + escRx(c.page) + '\\s*\\]', 'gi');
         html = html.replace(re, tag);
       });
-      msgsEl.innerHTML += `<div class="chat-msg ai">${html}</div>`;
+      msgsEl.innerHTML += '<div class="chat-msg ai">' + html + '</div>';
       msgsEl.scrollTop = msgsEl.scrollHeight;
       renderPlayVerification(verification);
     } catch {
       document.getElementById('play-loading').remove();
-      msgsEl.innerHTML += `<div class="chat-msg ai" style="color:var(--unsupported);border-color:var(--unsupported);">API unreachable. Check your connection in Settings and try again.</div>`;
+      msgsEl.innerHTML += '<div class="chat-msg ai" style="color:var(--unsupported);border-color:var(--unsupported);">API unreachable. Check your connection in Settings and try again.</div>';
       msgsEl.scrollTop = msgsEl.scrollHeight;
     }
   }
@@ -550,26 +541,25 @@
     const scoreLabel = document.getElementById('play-score-label');
 
     if (v.is_refusal) {
-      scoreNum.textContent = '—'; scoreNum.style.color = 'var(--accent)';
+      scoreNum.textContent = '\u2014'; scoreNum.style.color = 'var(--accent)';
       scoreLabel.textContent = 'Honest Refusal';
-      document.getElementById('play-verify-details').innerHTML = '<div class="empty-state" style="padding:16px;">Correct refusal — no citations to verify. This is a feature.</div>';
+      document.getElementById('play-verify-details').innerHTML = '<div class="empty-state" style="padding:16px;">Correct refusal \u2014 no citations to verify. This is a feature.</div>';
       return;
     }
     const total = v.total_citations || 0;
     const verified = v.verified || 0;
-    scoreNum.textContent = total > 0 ? `${verified}/${total}` : '—';
+    scoreNum.textContent = total > 0 ? verified + '/' + total : '\u2014';
     scoreLabel.textContent = 'Citation Accuracy';
     scoreNum.style.color = (verified/total >= 0.9) ? 'var(--verified)' : 'var(--unsupported)';
 
     if (v.details && v.details.length > 0) {
       document.getElementById('play-verify-details').innerHTML = v.details.map(d => {
         const cls = d.supported ? 'pass' : 'fail';
-        return `<div class="v-row ${cls}"><div class="v-icon">${d.supported ? '✓' : '✗'}</div><div><div style="font-weight:600;font-size:13px;">${esc(d.citation?.source||'?')} · p.${esc(d.citation?.page||'?')}</div><div style="font-size:12px;color:var(--text-muted);">${esc(d.citation?.claim||'')}</div></div></div>`;
+        return '<div class="v-row ' + cls + '"><div class="v-icon">' + (d.supported ? '\u2713' : '\u2717') + '</div><div><div style="font-weight:600;font-size:13px;">' + esc(d.citation?.source||'?') + ' \u00b7 p.' + esc(d.citation?.page||'?') + '</div><div style="font-size:12px;color:var(--text-muted);">' + esc(d.citation?.claim||'') + '</div></div></div>';
       }).join('');
     }
   }
 
-  // Settings
   function loadSettings() {
     document.getElementById('setting-api-url').value = apiBase;
     document.getElementById('setting-api-key').value = apiKey;
@@ -589,34 +579,6 @@
   function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function escRx(s) { return (s||'').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
-  // Init
-  loadSettings();
-  checkHealth();
-  setInterval(checkHealth, 20000);
-</script>
-</body>
-</html>
-/</g,'&lt;').replace(/>/g,'&gt;'); }
-  function escRx(s) { return (s||'').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-
-  // Init
-  loadSettings();
-  checkHealth();
-  setInterval(checkHealth, 20000);
-</script>
-</body>
-</html>
-age.removeItem('citeRAG_apiKey');
-    const el = document.getElementById('settings-saved');
-    el.style.display = 'block';
-    setTimeout(() => el.style.display = 'none', 2000);
-    checkHealth();
-  }
-
-  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  function escRx(s) { return (s||'').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-
-  // Init
   loadSettings();
   checkHealth();
   setInterval(checkHealth, 20000);
