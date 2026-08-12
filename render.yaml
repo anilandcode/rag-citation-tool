@@ -1,0 +1,29 @@
+# Render Blueprint — CiteRAG API
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: citerag-api
+    runtime: docker
+    plan: starter
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: COHERE_API_KEY
+        sync: false
+      - key: DEMO_API_KEY
+        value: demo-public-key
+      - key: DEMO_AUTO_SEED
+        value: "true"
+      - key: ALLOW_NO_RERANK
+        value: "true"
+      - key: CORS_ORIGINS
+        value: https://rag-citation-tool.vercel.app,http://localhost:8080,http://localhost:5173
+      - key: LLM_MODEL
+        value: gpt-4o-mini
+      - key: EMBEDDING_MODEL
+        value: text-embedding-3-small
+      - key: API_KEY
+        sync: false

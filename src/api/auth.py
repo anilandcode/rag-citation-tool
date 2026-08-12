@@ -1,90 +1,72 @@
 """Authentication and rate limiting for the RAG Citation API.
 
-Provides a simple API-key auth dependency and a basic in-memory rate limiter.
-Designed for v0.1 single-tenant deployments. Replace with a database-backed
-solution for multi-tenant production use.
+v0.1: API key via settings + optional demo key. In-memory rate limit.
 """
+
+from __future__ import annotations
 
 import time
 from collections import defaultdict
 
-from fastapi import HTTPException, Request
+from fastapi import Depends, HTTPException, Request
 
+from src.config.settings import settings
 from src.utils.logging import get_logger
 
 log = get_logger("auth")
 
-API_KEYS = {
-    "rag-cite-dev-key": "development",
-    "rag-cite-prod-key": "production",
-}
-
-# In-memory rate limiter: {client_key: [(timestamp,), ...]}
+# In-memory rate limiter: {client_key: [timestamps]}
 _rate_limit_buckets: dict[str, list[float]] = defaultdict(list)
 RATE_LIMIT_WINDOW = 60  # seconds
-RATE_LIMIT_MAX = 100     # requests per window
+RATE_LIMIT_MAX = 60  # requests per window per client
+
+
+def _header_key(request: Request) -> str:
+    return (request.headers.get("X-API-Key") or "").strip()
 
 
 async def verify_api_key(request: Request) -> str:
-    """FastAPI dependency: validates the X-API-Key header.
+    """Require X-API-Key when settings.api_key is set. Open if unset."""
+    configured = (settings.api_key or "").strip()
+    if not configured:
+        return "open"
 
-    Returns the client name if the key is valid. Raises 401 if missing or invalid.
-    Skips auth if no API keys are configured (open dev mode).
-    """
-    if not API_KEYS:
-        return "unauthenticated"
-
-    api_key = request.headers.get("X-API-Key", "")
-    if not api_key:
+    key = _header_key(request)
+    if not key:
         raise HTTPException(status_code=401, detail="Missing X-API-Key header")
-
-    client_name = API_KEYS.get(api_key)
-    if not client_name:
+    if key != configured:
+        # Also accept demo key for read-ish ops only via verify_demo_key;
+        # ingest stays locked to main API_KEY.
         raise HTTPException(status_code=403, detail="Invalid API key")
-
-    return client_name
-
-
-async def rate_limit(request: Request, client: str = Depends(verify_api_key)) -> str:
-    """FastAPI dependency: enforces per-client rate limits.
-
-    Allows RATE_LIMIT_MAX requests per RATE_LIMIT_WINDOW seconds.
-    Raises 429 if exceeded.
-    """
-    now = time.time()
-    bucket = _rate_limit_buckets[client]
-
-    # Prune expired entries
-    _rate_limit_buckets[client] = [t for t in bucket if now - t < RATE_LIMIT_WINDOW]
-
-    if len(_rate_limit_buckets[client]) >= RATE_LIMIT_MAX:
-        raise HTTPException(status_code=429, detail="Rate limit exceeded. Try again later.")
-
-    _rate_limit_buckets[client].append(now)
-    return client
+    return "authenticated"
 
 
 async def verify_demo_key(request: Request) -> str:
-    """Dependency: validates X-API-Key for /query.
+    """Allow main API_KEY, DEMO_API_KEY, or open mode when neither is set."""
+    configured = (settings.api_key or "").strip()
+    demo = (settings.demo_api_key or "").strip()
 
-    If no API_KEY is configured, the endpoint is open.
-    If DEMO_API_KEY is configured, accepts keys matching it OR the main api_key.
-    """
-    from src.config.settings import settings
+    if not configured and not demo:
+        return "open"
 
-    configured_key = settings.api_key
-    demo_key = settings.demo_api_key
-
-    if not configured_key and not demo_key:
-        return "unauthenticated"
-
-    key = request.headers.get("X-API-Key", "")
-    if configured_key and key == configured_key:
+    key = _header_key(request)
+    if configured and key == configured:
         return "authenticated"
-    if demo_key and key == demo_key:
+    if demo and key == demo:
         return "demo"
+    if not key:
+        raise HTTPException(status_code=401, detail="Missing X-API-Key header")
+    raise HTTPException(status_code=403, detail="Invalid API key")
 
-    if configured_key or demo_key:
-        raise HTTPException(status_code=401, detail="Missing or invalid X-API-Key header")
 
-    return "unauthenticated"
+async def rate_limit(request: Request) -> str:
+    """Per-IP (and key) sliding window. Applied to expensive routes."""
+    key = _header_key(request) or (request.client.host if request.client else "anon")
+    now = time.time()
+    bucket = [t for t in _rate_limit_buckets[key] if now - t < RATE_LIMIT_WINDOW]
+    if len(bucket) >= RATE_LIMIT_MAX:
+        log.warning("rate_limit_exceeded", client=key[:16])
+        raise HTTPException(status_code=429, detail="Rate limit exceeded. Try again later.")
+    bucket.append(now)
+    _rate_limit_buckets[key] = bucket
+    return key

@@ -1,0 +1,5 @@
+# Full eval stack (install on top of requirements-api.txt for audit endpoints)
+-r requirements-api.txt
+ragas==0.2.12
+datasets==3.4.1
+deepeval==2.3.5

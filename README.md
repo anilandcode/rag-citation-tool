@@ -1,181 +1,174 @@
 # CiteRAG — Citation-Grounded RAG Platform
 
-Production-ready RAG pipeline with measurable citation accuracy.
-Built on LlamaIndex + hybrid search + cross-encoder reranking + RAGAS/DeepEval.
+Production-oriented RAG pipeline with measurable citation accuracy.
+Built on LlamaIndex + hybrid search + optional Cohere rerank.
 
-**Live:** [rag-citation-tool.vercel.app](https://rag-citation-tool.vercel.app) · [Live Demo](https://rag-citation-tool.vercel.app/demo) · [Dashboard](https://rag-citation-tool.vercel.app/app)
+**Live frontend:** [Landing](https://rag-citation-tool.vercel.app) · [Demo](https://rag-citation-tool.vercel.app/demo) · [App](https://rag-citation-tool.vercel.app/app)
 
 ---
 
-## Quick Start (Full Stack)
+## Architecture (v0.2)
 
-### 1. Backend
+```
+Vercel (static)                     Render / Docker (API)
+┌─────────────────────┐             ┌──────────────────────────┐
+│ /          landing  │   /api/*    │ FastAPI CiteRAG          │
+│ /demo      live UI  │ ─────────►  │ /health /demo/seed       │
+│ /app       dashboard│  rewrite    │ /query /ingest           │
+│ /assets/config.js   │             │ auto-seed data/demo      │
+└─────────────────────┘             └──────────────────────────┘
+```
+
+Production UI calls **same-origin `/api`**, proxied by Vercel to the Render service
+`https://citerag-api.onrender.com` (see `vercel.json`). Override anytime in App → Settings.
+
+---
+
+## Quick start (local)
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Configure environment
+cd rag-citation-tool
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements-api.txt
 cp .env.example .env
-# Edit .env with your API keys (OPENAI_API_KEY required, COHERE_API_KEY recommended)
+# set OPENAI_API_KEY=...  (COHERE_API_KEY optional)
 
-# Seed demo corpus and start server
-cp data/demo/*.md data/
+# API
 uvicorn src.api.main:app --reload --port 8000
 
-# Or seed via API
-curl -X POST http://localhost:8000/demo/seed -H "X-API-Key: demo-public-key"
+# Static UI (other terminal)
+python3 -m http.server 8080
+# open http://localhost:8080/demo
 ```
 
-### 2. Frontend
-
-Point any browser at the Vercel deployment or open `index.html` locally.
+Smoke:
 
 ```bash
-# If running locally, open these in browser:
-open http://localhost:8000  # (not an HTTP server — use Vercel or Python's http.server)
-python3 -m http.server 8080  # then visit http://localhost:8080
-```
-
-### 3. Demo Flow
-
-```bash
-# Health check
-curl http://localhost:8000/health
-
-# Seed demo documents
-curl -X POST http://localhost:8000/demo/seed -H "X-API-Key: demo-public-key"
-
-# Query
-curl -X POST http://localhost:8000/query \
+curl -s localhost:8000/health | jq .
+curl -s -X POST localhost:8000/demo/seed -H "X-API-Key: demo-public-key" | jq .
+curl -s -X POST localhost:8000/query \
   -H "Content-Type: application/json" \
   -H "X-API-Key: demo-public-key" \
-  -d '{"question":"What is the refund policy for annual subscriptions?"}'
+  -d '{"question":"What is the refund policy for annual subscriptions?"}' | jq .
 ```
+
+---
+
+## Deploy API (Render)
+
+1. Push this repo to GitHub (`anilandcode/rag-citation-tool`).
+2. [Render](https://dashboard.render.com) → **New** → **Blueprint** → select repo (`render.yaml`).
+   - Or: New Web Service → Docker → root Dockerfile.
+3. Set secrets:
+   - `OPENAI_API_KEY` (required)
+   - `COHERE_API_KEY` (optional; hybrid works without it)
+   - `API_KEY` (optional lock for `/ingest`)
+4. After first deploy, confirm:
+   - `https://citerag-api.onrender.com/health`
+5. If the service name/URL differs from `citerag-api.onrender.com`, update the rewrite in `vercel.json` and redeploy frontend.
+
+CLI (after `render login`):
+
+```bash
+render blueprints apply
+# or create service manually from Dockerfile
+```
+
+---
+
+## Deploy frontend (Vercel)
+
+Already connected. Push to `main` auto-deploys.
+
+```bash
+vercel --prod
+```
+
+`vercel.json` proxies `/api/*` → Render. CORS on the API also allows the Vercel origin directly.
 
 ---
 
 ## Surfaces
 
-| Surface | URL | Description |
-|---------|-----|-------------|
-| **Marketing** | `/` | Landing page with 12 sections, design tokens |
-| **Live Demo** | `/demo` | 3-pane UI — ask questions against sample docs, see citations + verification |
-| **Dashboard** | `/app` | Corpus upload, playground, audit report, settings |
+| Surface | Path | Role |
+|---------|------|------|
+| Marketing | `/` | Landing |
+| Live Demo | `/demo` | 3-pane sample Q&A + verification |
+| Dashboard | `/app` | Upload, playground, report, API settings |
 
 ---
 
-## Architecture
+## API
 
-```
-ingestion/  → Document loaders, semantic chunking, metadata enrichment
-retrieval/  → Hybrid vector+BM25 search, Cohere cross-encoder reranking
-generation/ → Citation-grounded prompts, citation extraction + verification
-evaluation/ → RAGAS metrics, DeepEval CI/CD gates, audit reports
-api/        → FastAPI with CORS, auth, demo seed, 8 endpoints
-```
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| GET | `/health` | open | `indexed`, `sources`, `chunks` |
+| POST | `/demo/seed` | demo key | indexes `data/demo` only |
+| POST | `/query` | demo key | answer + citations + verification |
+| POST | `/ingest` | API key if set | uploads → `data/uploads` |
+| POST | `/evaluate*` | API key | needs `requirements-eval.txt` |
+| POST | `/audit-report/{collection}` | API key | measured if golden set provided |
 
----
+Keys (`X-API-Key` header):
 
-## API Endpoints
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| `GET` | `/health` | Open | Health check + index status |
-| `POST` | `/demo/seed` | Demo key | Ingest `data/demo/` corpus |
-| `POST` | `/ingest` | API key | Upload files, build index |
-| `POST` | `/query` | Demo key | Citation-grounded answer + verification |
-| `POST` | `/evaluate` | API key | RAGAS evaluation batch |
-| `POST` | `/evaluate-single` | API key | DeepEval single-response check |
-| `POST` | `/audit-report/{collection}` | API key | Audit report generation |
-
-### Auth
-
-- Set `API_KEY` in `.env` to require `X-API-Key` header on all endpoints
-- Set `DEMO_API_KEY` for public `/demo/seed` and `/query` access (default: `demo-public-key`)
-- Leave both empty for fully open mode
+- `DEMO_API_KEY` (default `demo-public-key`) → seed + query
+- `API_KEY` (optional) → ingest + eval; if empty, ingest is open (local only)
 
 ---
 
-## Demo Corpus
+## Demo corpus
 
-Four sample markdown files in `data/demo/`:
+Tracked in git under `data/demo/`:
 
-| File | Content |
-|------|---------|
-| `refund-policy.md` | Annual subscription refund within 30 days |
-| `terms-2026.md` | Data ownership, acceptable use, liability |
-| `pricing.md` | Starter/Professional/Enterprise plans |
+- `refund-policy.md`
+- `terms-2026.md`
+- `pricing.md`
+- `README_DEMO.md` — suggested questions
 
-See `data/demo/README_DEMO.md` for suggested questions.
+Boot with `DEMO_AUTO_SEED=true` (default) loads this corpus when OpenAI embeddings are available.
 
 ---
 
-## Environment Variables
+## Env vars
 
-| Variable | Required | Default | Notes |
-|----------|----------|---------|-------|
-| `OPENAI_API_KEY` | Yes | — | For LLM generation and embeddings |
-| `COHERE_API_KEY` | Recommended | — | For cross-encoder reranking |
-| `PINECONE_API_KEY` | Optional | — | For persistent vector storage |
-| `CORS_ORIGINS` | Optional | `*` | Comma-separated allowed origins |
-| `API_KEY` | Optional | — | Required X-API-Key header |
-| `DEMO_API_KEY` | Optional | `demo-public-key` | Public demo key |
-| `LLM_MODEL` | Optional | `gpt-4o` | Generation model |
-| `LLM_EVAL_MODEL` | Optional | `gpt-4o-mini` | Evaluation judge model |
+See `.env.example`. Important:
+
+| Var | Default | Purpose |
+|-----|---------|---------|
+| `OPENAI_API_KEY` | — | LLM + embeddings |
+| `COHERE_API_KEY` | — | rerank (optional) |
+| `CORS_ORIGINS` | localhost + Vercel | browser access |
+| `DEMO_API_KEY` | `demo-public-key` | public demo |
+| `DEMO_AUTO_SEED` | `true` | seed on startup |
+| `ALLOW_NO_RERANK` | `true` | run without Cohere |
+| `LLM_MODEL` | `gpt-4o-mini` | cost-friendly demo |
 
 ---
 
 ## Tests
 
 ```bash
-# Import smoke test
-OPENAI_API_KEY=sk-test python3 tests/integration/test_smoke.py
-
-# Unit tests
-pytest tests/unit/ -v
-
-# Compile check
 python3 -m compileall src/
+pytest tests/unit/ -v
+# integration smoke (needs deps)
+OPENAI_API_KEY=sk-test python3 -c "import src.api.main; print('import ok')"
 ```
 
 ---
 
-## Known Architecture Limitations (v0.1)
+## Known limits (v0.1/0.2)
 
-| Limitation | Impact | v0.2 Plan |
-|------------|--------|-----------|
-| Single global index | One corpus per process; ingest overwrites | Per-collection registry |
-| In-memory index lost on restart | Server restart requires re-ingestion | Load-from-store startup |
-| No authentication on public demo | `/query` open with demo key | API key rotation, JWT |
-| Blocking sync calls in async handlers | Concurrent requests serialize | Threadpool executor |
-| Sequential citation verification | Latency scales with citation count | Batched LLM verification |
-| Substring source matching | `policy.pdf` matches `old_policy.pdf` | Exact + page disambiguation |
-| Manual audit report numbers | Report card shows sample data | Measured `run_audit()` pipeline |
-| Refusals not tracked separately | Reported as 0 citations | Dedicated refusal-rate metric |
+- One in-memory index per process (ingest overwrites)
+- Restart loses index unless auto-seed or external store
+- Citation verify is sequential LLM calls (latency)
+- Starter Render may cold-start (first request slow)
+- Full RAGAS/DeepEval needs `pip install -r requirements-eval.txt`
 
 ---
 
-## Deployment
-
-### Vercel (Frontend)
-Connected to GitHub. Auto-deploys on push to `main`. Static files served with rewrite rules for SPA routing.
-
-### Backend
-FastAPI runs on Railway, Render, Fly.io, or local. Configure `CORS_ORIGINS` to your Vercel domain.
+## CLI
 
 ```bash
-# Example Render start command
-uvicorn src.api.main:app --host 0.0.0.0 --port $PORT
-```
-
----
-
-## CLI Commands
-
-```bash
-python -m src.cli ingest --input-dir ./data
+python -m src.cli ingest --input-dir ./data/demo
 python -m src.cli query "What is the refund policy?"
-python -m src.cli eval tests/eval_datasets/sample_golden.json
-python -m src.cli verify "What are supported file formats?"
 ```

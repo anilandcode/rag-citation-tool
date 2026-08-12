@@ -243,6 +243,7 @@
     .shell { max-width: 1280px; }
   }
 </style>
+<script src="/assets/config.js"></script>
 </head>
 <body>
 <div class="shell">
@@ -370,8 +371,8 @@
     <div class="panel-label" style="margin-bottom:16px;">API Connection</div>
     <div class="setting-row">
       <label>API Base URL</label>
-      <input id="setting-api-url" value="http://localhost:8000" placeholder="http://localhost:8000">
-      <div class="setting-hint">Where your FastAPI backend is running</div>
+      <input id="setting-api-url" value="" placeholder="/api or https://your-api.onrender.com">
+      <div class="setting-hint">Production default is /api (Vercel proxy). Local default is http://localhost:8000.</div>
     </div>
     <div class="setting-row">
       <label>API Key</label>
@@ -386,15 +387,15 @@
       </select>
     </div>
     <button class="save-btn" onclick="saveSettings()">Save Settings</button>
-    <div id="settings-saved" style="display:none;margin-top:10px;font-size:13px;color:var(--accent);">✓ Settings saved</div>
+    <div id="settings-saved" style="display:none;margin-top:10px;font-size:13px;color:var(--accent);">Settings saved</div>
   </div>
 </div>
 
 </div>
 
 <script>
-  let apiBase = localStorage.getItem('citeRAG_apiBase') || 'http://localhost:8000';
-  let apiKey = sessionStorage.getItem('citeRAG_apiKey') || 'demo-public-key';
+  let apiBase = localStorage.getItem('citeRAG_apiBase') || window.__API_BASE__ || 'http://localhost:8000';
+  let apiKey = sessionStorage.getItem('citeRAG_apiKey') || window.__DEMO_API_KEY__ || 'demo-public-key';
   let selectedFiles = [];
   let apiOnline = false;
 
@@ -402,7 +403,8 @@
     const headers = {};
     if (apiKey) headers['X-API-Key'] = apiKey;
     if (!(opts.body instanceof FormData)) headers['Content-Type'] = 'application/json';
-    return fetch(`${apiBase}${path}`, { ...opts, headers: { ...headers, ...(opts.headers || {}) } });
+    const base = String(apiBase).replace(/\/$/, '');
+    return fetch(`${base}${path}`, { ...opts, headers: { ...headers, ...(opts.headers || {}) } });
   }
 
   function switchTab(name) {
@@ -424,7 +426,7 @@
       document.getElementById('health-dot').className = 'status-dot on';
       document.getElementById('health-text').textContent = j.indexed ? 'Indexed' : 'Ready';
       document.getElementById('health-indicator').innerHTML = '<span class="status-dot on"></span> API online';
-      updateStatusCards(j.indexed);
+      updateStatusCards(j);
       return j;
     } catch {
       apiOnline = false;
@@ -435,13 +437,20 @@
     }
   }
 
-  function updateStatusCards(indexed) {
+  function updateStatusCards(j) {
     const dcEl = document.getElementById('doc-count');
     const ccEl = document.getElementById('chunk-count');
-    if (indexed) {
-      dcEl.textContent = '3'; dcEl.classList.remove('empty');
-      ccEl.textContent = '\u2014'; ccEl.classList.remove('empty');
-      document.getElementById('play-doc-list').innerHTML = '<div class="doc-list-item">refund-policy.md</div><div class="doc-list-item">terms-2026.md</div><div class="doc-list-item">pricing.md</div>';
+    if (j && j.indexed) {
+      dcEl.textContent = j.documents != null ? j.documents : (j.sources ? j.sources.length : '\u2014');
+      dcEl.classList.remove('empty');
+      ccEl.textContent = j.chunks != null ? j.chunks : '\u2014';
+      ccEl.classList.remove('empty');
+      const sources = (j.sources && j.sources.length)
+        ? j.sources
+        : ['refund-policy.md', 'terms-2026.md', 'pricing.md'];
+      document.getElementById('play-doc-list').innerHTML = sources.map(function (s) {
+        return '<div class="doc-list-item">' + esc(s) + '</div>';
+      }).join('');
     }
   }
 
@@ -480,8 +489,12 @@
     const form = new FormData();
     selectedFiles.forEach(f => form.append('files', f));
     try {
-      const r = await fetch(`${apiBase}/ingest`, { method: 'POST', headers: apiKey ? {'X-API-Key': apiKey} : {}, body: form });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const base = String(apiBase).replace(/\/$/, '');
+      const r = await fetch(base + '/ingest', { method: 'POST', headers: apiKey ? {'X-API-Key': apiKey} : {}, body: form });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(typeof err.detail === 'string' ? err.detail : ('HTTP ' + r.status));
+      }
       const j = await r.json();
       document.getElementById('doc-count').textContent = j.documents_indexed || 0;
       document.getElementById('doc-count').classList.remove('empty');
@@ -512,6 +525,10 @@
 
     try {
       const r = await api('/query', { method: 'POST', body: JSON.stringify({ question }) });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(typeof err.detail === 'string' ? err.detail : ('HTTP ' + r.status));
+      }
       const j = await r.json();
       document.getElementById('play-loading').remove();
 

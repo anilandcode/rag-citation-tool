@@ -377,6 +377,7 @@
     .demo-nav-brand { margin-bottom: 4px; }
   }
 </style>
+<script src="/assets/config.js"></script>
 </head>
 <body>
 <div class="demo-shell">
@@ -460,23 +461,25 @@
 
 <script>
   const API = localStorage.getItem('citeRAG_apiBase') || window.__API_BASE__ || 'http://localhost:8000';
-  const API_KEY = sessionStorage.getItem('citeRAG_apiKey') || 'demo-public-key';
+  const API_KEY = sessionStorage.getItem('citeRAG_apiKey') || window.__DEMO_API_KEY__ || 'demo-public-key';
   let apiOnline = false;
 
   function api(path, opts = {}) {
     const headers = { 'Content-Type': 'application/json' };
     if (API_KEY) headers['X-API-Key'] = API_KEY;
-    return fetch(`${API}${path}`, { ...opts, headers: { ...headers, ...(opts.headers || {}) } });
+    const base = String(API).replace(/\/$/, '');
+    return fetch(`${base}${path}`, { ...opts, headers: { ...headers, ...(opts.headers || {}) } });
   }
 
   async function checkHealth() {
     try {
       const r = await api('/health');
+      if (!r.ok) throw new Error('health ' + r.status);
       const j = await r.json();
       apiOnline = true;
       document.getElementById('health-dot').style.background = '#4A7A35';
       document.getElementById('offline-banner').classList.add('hidden');
-      if (j.indexed) loadDocList();
+      if (j.indexed) loadDocList(j.sources || null);
     } catch {
       apiOnline = false;
       document.getElementById('health-dot').style.background = '#C08A8A';
@@ -490,10 +493,16 @@
     btn.textContent = 'Loading...';
     try {
       const r = await api('/demo/seed', { method: 'POST' });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(err.detail || ('HTTP ' + r.status));
+      }
       const j = await r.json();
-      loadDocList();
-      btn.textContent = `✓ ${j.documents_indexed} docs loaded`;
+      const h = await api('/health').then(x => x.json()).catch(() => ({}));
+      loadDocList(h.sources || null);
+      btn.textContent = (j.documents_indexed || 0) + ' docs loaded';
       btn.style.background = 'var(--color-verified)';
+      btn.disabled = true;
     } catch {
       btn.disabled = false;
       btn.textContent = 'Load Sample Docs';
@@ -501,20 +510,26 @@
     }
   }
 
-  async function loadDocList() {
+  async function loadDocList(sources) {
     try {
-      const r = await api('/health');
-      const j = await r.json();
-      if (j.indexed) {
-        const el = document.getElementById('doc-list');
-        el.innerHTML = '';
-        ['refund-policy.md', 'terms-2026.md', 'pricing.md'].forEach(name => {
-          el.innerHTML += `<div class="doc-item"><div class="doc-icon"></div><div><div style="font-weight:600;font-size:13px;">${name}</div><div class="doc-meta">indexed</div></div></div>`;
-        });
-        document.getElementById('seed-btn').textContent = '✓ 3 docs loaded';
-        document.getElementById('seed-btn').style.background = 'var(--color-verified)';
-        document.getElementById('seed-btn').disabled = true;
+      let list = sources;
+      if (!list) {
+        const r = await api('/health');
+        const j = await r.json();
+        if (!j.indexed) return;
+        list = (j.sources && j.sources.length)
+          ? j.sources
+          : ['refund-policy.md', 'terms-2026.md', 'pricing.md'];
       }
+      const el = document.getElementById('doc-list');
+      el.innerHTML = '';
+      list.forEach(name => {
+        el.innerHTML += `<div class="doc-item"><div class="doc-icon"></div><div><div style="font-weight:600;font-size:13px;">${esc(name)}</div><div class="doc-meta">indexed</div></div></div>`;
+      });
+      const btn = document.getElementById('seed-btn');
+      btn.textContent = 'Sample docs loaded';
+      btn.style.background = 'var(--color-verified)';
+      btn.disabled = true;
     } catch {}
   }
 
@@ -542,6 +557,10 @@
         method: 'POST',
         body: JSON.stringify({ question }),
       });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(typeof err.detail === 'string' ? err.detail : ('HTTP ' + r.status));
+      }
       const j = await r.json();
 
       document.getElementById('loading-msg').remove();

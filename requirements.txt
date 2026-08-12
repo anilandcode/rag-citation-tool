@@ -1,26 +1,5 @@
-# Core RAG pipeline
-llama-index==0.12.27
-llama-index-core==0.12.27
-llama-index-llms-openai==0.3.31
-llama-index-embeddings-openai==0.3.1
-llama-index-vector-stores-pinecone==0.2.3
-llama-index-postprocessor-cohere-rerank==0.2.3
-llama-index-retrievers-bm25==0.3.1
-
-# Infra
-pinecone-client==5.1.0
+# Full stack (local + hosted eval extras)
+-r requirements-api.txt
 ragas==0.2.12
 datasets==3.4.1
 deepeval==2.3.5
-langfuse==2.60.7
-fastapi==0.115.11
-uvicorn[standard]==0.34.0
-python-dotenv==1.0.1
-pydantic==2.10.6
-pydantic-settings==2.7.1
-python-multipart==0.0.19
-
-# Dev
-pytest==8.3.4
-pytest-asyncio==0.25.2
-httpx==0.28.1

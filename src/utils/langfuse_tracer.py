@@ -1,65 +1,69 @@
-"""Langfuse observability — trace ingestion, retrieval, and generation calls."""
+"""Langfuse observability — optional; never blocks the API if keys missing."""
 
 from contextlib import contextmanager
-from typing import Optional
-
-from langfuse import Langfuse
+from typing import Any, Optional
 
 from src.config.settings import settings
+from src.utils.logging import get_logger
+
+log = get_logger("langfuse")
+
+_langfuse_client: Any = None
 
 
-_langfuse_client: Optional[Langfuse] = None
+class _NoopTrace:
+    def update(self, *args, **kwargs):
+        return self
+
+    def span(self, *args, **kwargs):
+        return _NoopTrace()
+
+    def end(self, *args, **kwargs):
+        return None
 
 
-def get_langfuse() -> Langfuse:
+def get_langfuse():
     global _langfuse_client
+    if not settings.langfuse_public_key or not settings.langfuse_secret_key:
+        return _NoopTrace()
     if _langfuse_client is None:
-        _langfuse_client = Langfuse(
-            public_key=settings.langfuse_public_key,
-            secret_key=settings.langfuse_secret_key,
-            host=settings.langfuse_host,
-        )
+        try:
+            from langfuse import Langfuse
+
+            _langfuse_client = Langfuse(
+                public_key=settings.langfuse_public_key,
+                secret_key=settings.langfuse_secret_key,
+                host=settings.langfuse_host,
+            )
+        except Exception as exc:
+            log.warning("langfuse_init_failed", error=str(exc)[:120])
+            return _NoopTrace()
     return _langfuse_client
 
 
 def init_langfuse_llama_index():
-    """Register Langfuse as a LlamaIndex callback handler for observability."""
+    if not settings.langfuse_public_key:
+        return
     try:
         from langfuse.llama_index import LlamaIndexCallbackHandler
         import llama_index.core
 
-        callback_handler = LlamaIndexCallbackHandler()
-        llama_index.core.global_handler = callback_handler
-    except ImportError:
-        try:
-            import llama_index.core
-            llama_index.core.set_global_handler("langfuse")
-        except Exception:
-            pass
+        llama_index.core.global_handler = LlamaIndexCallbackHandler()
     except Exception:
         pass
 
 
 @contextmanager
 def trace_generation(name: str = "rag-query", metadata: Optional[dict] = None):
-    """Context manager for tracing a RAG query end-to-end."""
     langfuse = get_langfuse()
-    trace = langfuse.trace(name=name, metadata=metadata or {})
+    try:
+        trace = langfuse.trace(name=name, metadata=metadata or {})
+    except Exception:
+        trace = _NoopTrace()
     try:
         yield trace
     finally:
-        trace.update(status="completed")
-
-
-@contextmanager
-def span(span_name: str, trace=None, metadata: Optional[dict] = None):
-    """Create a span within a trace for a specific operation."""
-    langfuse = get_langfuse()
-    if trace:
-        s = trace.span(name=span_name, metadata=metadata or {})
-    else:
-        s = langfuse.span(name=span_name)
-    try:
-        yield s
-    finally:
-        s.end()
+        try:
+            trace.update(status="completed")
+        except Exception:
+            pass

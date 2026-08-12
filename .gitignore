@@ -4,7 +4,11 @@ __pycache__/
 .env
 .venv/
 venv/
-data/
+# Keep sample corpus; ignore user uploads + loose data files
+data/uploads/
+data/*
+!data/demo/
+!data/demo/**
 *.log
 .DS_Store
 dist/
