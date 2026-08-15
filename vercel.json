@@ -12,8 +12,10 @@
     { "source": "/app", "destination": "/app.html" },
     { "source": "/v1", "destination": "/v1/index.html" },
     { "source": "/v1/", "destination": "/v1/index.html" },
+    { "source": "/v2", "destination": "/v2/index.html" },
+    { "source": "/v2/", "destination": "/v2/index.html" },
     {
-      "source": "/((?!api(?:/|$)|demo\\.html$|app\\.html$|v1(?:/|$)|assets/).*)",
+      "source": "/((?!api(?:/|$)|demo\\.html$|app\\.html$|v1(?:/|$)|v2(?:/|$)|assets/).*)",
       "destination": "/index.html"
     }
   ],
