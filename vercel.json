@@ -10,8 +10,10 @@
     },
     { "source": "/demo", "destination": "/demo.html" },
     { "source": "/app", "destination": "/app.html" },
+    { "source": "/v1", "destination": "/v1/index.html" },
+    { "source": "/v1/", "destination": "/v1/index.html" },
     {
-      "source": "/((?!api(?:/|$)|demo\\.html$|app\\.html$|assets/).*)",
+      "source": "/((?!api(?:/|$)|demo\\.html$|app\\.html$|v1(?:/|$)|assets/).*)",
       "destination": "/index.html"
     }
   ],
@@ -27,7 +29,7 @@
     {
       "source": "/assets/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=60" }
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
       ]
     }
   ]
