@@ -1,521 +1,844 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CiteRAG - AI answers that show their sources</title>
-<meta name="description" content="Citation-grounded RAG you can measure. Hybrid retrieve, verify every claim, refuse when the docs do not contain the answer.">
-<meta property="og:title" content="CiteRAG - AI answers that show their sources">
-<meta property="og:image" content="/assets/v3/hero-ridge.jpg">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231C1A17'/><text x='16' y='21' text-anchor='middle' fill='%23F4F0E8' font-size='15' font-weight='700' font-family='serif'>C</text></svg>">
-<link rel="preload" as="image" href="/assets/v3/hero-ridge.jpg" fetchpriority="high">
-<link rel="preconnect" href="https://api.fontshare.com">
-<link rel="preconnect" href="https://fonts.bunny.net">
-<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
-<link href="https://fonts.bunny.net/css?family=newsreader:400,500,600,400i,600i" rel="stylesheet">
+<title>CiteRAG — AI Answers, Proven by Citations</title>
+<meta name="description" content="Fix broken RAG retrieval and ship document AI that shows its sources — with citation accuracy you can measure, not just hope for.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%233D5C27'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='700' font-family='sans-serif'>C</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      extend: {
+        colors: {
+          canvas: { outer: '#B9BFB1', inner: '#F4F5F1', card: '#FFFFFF' },
+          hero: { dark: '#141C12', dark2: '#1D2A1A' },
+          accent: { DEFAULT: '#3D5C27', hover: '#2F481E', soft: '#DCE8CC' },
+          text: { primary: '#1A1C17', secondary: '#6E7269', inverse: '#F4F5F1', 'inverse-dim': '#9AA392' },
+          border: { subtle: '#E3E5DC' },
+          card: { teal: '#3F8F7A', green: '#4A7A35', gold: '#C2A15C', rose: '#C08A8A', slate: '#7A8B8B' },
+          illustration: { bg: '#D8D2C4' },
+        },
+        borderRadius: { page: '32px', card: '24px', ui: '16px', btn: '12px' },
+        maxWidth: { container: '1200px' },
+        spacing: { section: '120px' },
+      }
+    }
+  }
+</script>
 <style>
   :root {
-    --bone: #F4F0E8;
-    --bone-2: #EBE6DC;
-    --ink: #1C1A17;
-    --muted: #6B675F;
-    --line: #DDD6C8;
-    --glass: rgba(28, 24, 20, 0.78);
-    --glass-2: rgba(36, 31, 26, 0.88);
-    --cream: #F7F3EC;
-    --pill: #1C1A17;
-    --ease: cubic-bezier(0.32, 0.72, 0, 1);
+    --color-canvas-outer: #B9BFB1;
+    --color-canvas-inner: #F4F5F1;
+    --color-hero-dark: #141C12;
+    --color-accent: #3D5C27;
+    --color-accent-hover: #2F481E;
+    --color-text-primary: #1A1C17;
+    --color-text-secondary: #6E7269;
+    --color-text-inverse: #F4F5F1;
+    --color-text-inverse-dim: #9AA392;
+    --color-border-subtle: #E3E5DC;
+    --color-card-teal: #3F8F7A;
+    --color-card-green: #4A7A35;
+    --color-card-gold: #C2A15C;
+    --color-card-rose: #C08A8A;
+    --color-card-slate: #7A8B8B;
+    --color-illustration-bg: #D8D2C4;
+    --radius-page: 28px;
+    --radius-card: 22px;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    .rise { animation: none; opacity: 1; transform: none; }
-  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
   body {
-    font-family: "Satoshi", system-ui, sans-serif;
-    background: var(--bone);
-    color: var(--ink);
-    font-size: 16px;
-    line-height: 1.55;
+    background: var(--color-canvas-outer);
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
   }
-  a { color: inherit; text-decoration: none; }
-  .wrap { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
-  .serif { font-family: "Newsreader", Georgia, serif; }
 
-  header {
-    position: sticky; top: 0; z-index: 40;
-    background: color-mix(in srgb, var(--bone) 88%, transparent);
-    backdrop-filter: blur(16px);
-    border-bottom: 1px solid transparent;
+  .page-sheet {
+    max-width: 1200px;
+    margin: 24px auto;
+    background: var(--color-canvas-inner);
+    border-radius: var(--radius-page);
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(20, 28, 18, 0.06);
   }
-  .nav {
-    height: 64px;
-    display: flex; align-items: center; justify-content: space-between;
+
+  /* Navigation */
+  .nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 32px;
+    background: white;
+    position: sticky;
+    top: 24px;
+    z-index: 100;
+    border-bottom: 1px solid var(--color-border-subtle);
   }
-  .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: -0.02em; }
-  .mark {
-    width: 22px; height: 22px; border-radius: 6px; background: var(--ink);
-    color: var(--bone); display: grid; place-items: center;
-    font-family: "Newsreader", serif; font-size: 13px;
+
+  .nav-links { display: flex; gap: 28px; align-items: center; }
+  .nav-links a {
+    font-size: 14px; font-weight: 500; color: var(--color-text-secondary);
+    text-decoration: none; transition: color 0.15s;
   }
-  .nav-mid { display: flex; gap: 8px; }
-  .nav-mid a, .ghost {
-    height: 36px; padding: 0 14px; border-radius: 999px;
-    display: inline-flex; align-items: center; font-size: 14px; font-weight: 500;
-    border: 1px solid var(--line); background: #fff;
+  .nav-links a:hover { color: var(--color-text-primary); }
+  .nav-wordmark {
+    font-size: 18px; font-weight: 700; letter-spacing: 0.04em;
+    color: var(--color-text-primary); text-transform: uppercase;
   }
-  .nav-right { display: flex; gap: 10px; align-items: center; }
+
   .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    height: 42px; padding: 0 18px; border-radius: 999px;
-    font: inherit; font-weight: 600; font-size: 14px; border: 0; cursor: pointer;
-    transition: transform 240ms var(--ease);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600; padding: 10px 22px;
+    border-radius: 12px; text-decoration: none; cursor: pointer;
+    transition: all 0.2s ease; border: none; line-height: 1;
   }
-  .btn:active { transform: scale(0.98); }
-  .btn-dark { background: var(--pill); color: var(--bone); }
-  .btn-line { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
-  .nav-toggle { display: none; background: none; border: 0; font-size: 20px; }
+  .btn-primary { background: var(--color-accent); color: white; }
+  .btn-primary:hover { background: var(--color-accent-hover); transform: translateY(-1px); }
+  .btn-outline {
+    background: transparent; color: var(--color-text-primary);
+    border: 1.5px solid var(--color-border-subtle);
+  }
+  .btn-outline:hover { border-color: var(--color-text-secondary); }
+  .btn-dark {
+    background: rgba(255,255,255,0.12); color: var(--color-text-inverse);
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+  .btn-dark:hover { background: rgba(255,255,255,0.2); }
 
-  .hero { padding: 28px 0 0; text-align: center; }
-  .eyebrow { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
-  .hero h1 {
-    font-family: "Newsreader", Georgia, serif;
-    font-weight: 500;
-    font-size: clamp(40px, 6.2vw, 68px);
-    line-height: 1.08;
-    letter-spacing: -0.03em;
-    max-width: 16ch;
-    margin: 0 auto;
-  }
-  .hero h1 em { font-style: italic; font-weight: 500; }
-  .hero-sub {
-    max-width: 46ch; margin: 16px auto 0;
-    color: var(--muted); font-size: 16px;
-  }
-  .hero-ctas { display: flex; justify-content: center; gap: 10px; margin: 22px 0 36px; }
-
-  .stage {
+  /* Hero */
+  .hero-section {
+    background: linear-gradient(135deg, var(--color-hero-dark) 0%, #1D2A1A 100%);
+    padding: 100px 32px 0;
+    text-align: center;
     position: relative;
-    width: min(1180px, calc(100% - 24px));
-    margin: 0 auto;
-    border-radius: 28px 28px 0 0;
-    overflow: hidden;
-    min-height: 620px;
-  }
-  .stage img.bg {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; object-position: 50% 60%;
-  }
-  .window {
-    position: relative;
-    z-index: 2;
-    width: min(920px, calc(100% - 40px));
-    margin: 180px auto 48px;
-    background: var(--glass);
-    color: #E8E2D6;
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 18px;
-    box-shadow: 0 30px 80px rgba(20,16,12,0.35);
-    backdrop-filter: blur(18px);
-    text-align: left;
     overflow: hidden;
   }
-  .win-bar {
+  .hero-glow {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 200px;
+    background: radial-gradient(ellipse at center, rgba(61,92,39,0.35) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-headline {
+    font-size: clamp(40px, 5vw, 72px); font-weight: 700; line-height: 1.08;
+    color: var(--color-text-inverse); max-width: 780px; margin: 0 auto;
+  }
+  .hero-headline span.accent { color: var(--color-accent); }
+  .hero-subhead {
+    font-size: 18px; color: var(--color-text-inverse-dim); line-height: 1.6;
+    max-width: 600px; margin: 20px auto 36px;
+  }
+  .hero-ctas { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+  .hero-mockup {
+    max-width: 900px; margin: 48px auto 0;
+    background: #1A2418; border-radius: 16px 16px 0 0;
+    padding: 20px 20px 0; box-shadow: 0 24px 64px rgba(20,28,18,0.35);
+  }
+  .mockup-bar {
+    display: flex; gap: 8px; margin-bottom: 16px;
+  }
+  .mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .mockup-dot:nth-child(1) { background: #E85D5D; }
+  .mockup-dot:nth-child(2) { background: #E8B85D; }
+  .mockup-dot:nth-child(3) { background: #5DE870; }
+
+  .mockup-panes {
+    display: grid; grid-template-columns: 220px 1fr 260px; gap: 12px;
+    padding-bottom: 16px;
+  }
+  .mockup-pane {
+    background: #0F180E; border-radius: 10px; padding: 14px;
+    min-height: 280px;
+  }
+  .mockup-label { font-size: 11px; color: #4A5A46; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+  .mockup-doc {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px; margin-bottom: 6px;
+    border-radius: 6px; background: rgba(255,255,255,0.04); font-size: 12px; color: #7A8A72;
+  }
+  .mockup-doc.active { background: rgba(61,92,39,0.2); color: #B4C8A8; }
+  .mockup-doc-icon { width: 22px; height: 16px; border-radius: 2px; background: rgba(255,255,255,0.08); flex-shrink: 0; }
+
+  .mockup-chat { display: flex; flex-direction: column; gap: 10px; }
+  .mockup-msg {
+    padding: 12px 14px; border-radius: 10px; font-size: 13px; line-height: 1.55;
+  }
+  .mockup-msg.user { background: rgba(255,255,255,0.06); color: #9AA392; align-self: flex-end; max-width: 80%; }
+  .mockup-msg.ai { background: rgba(61,92,39,0.15); color: #C8D8BC; max-width: 90%; }
+  .mockup-cite {
+    display: inline-flex; align-items: center; gap: 3px; font-size: 11px;
+    color: var(--color-accent); background: rgba(61,92,39,0.25);
+    padding: 2px 7px; border-radius: 4px; font-weight: 500;
+  }
+
+  .mockup-verify { display: flex; flex-direction: column; gap: 10px; }
+  .mockup-vrow {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 10px; border-radius: 6px; font-size: 11px;
+  }
+  .mockup-vrow.pass { background: rgba(93,232,112,0.08); color: #7CCA7C; }
+  .mockup-vrow.fail { background: rgba(232,93,93,0.08); color: #CA7C7C; }
+  .mockup-score {
+    background: rgba(61,92,39,0.25); border-radius: 10px; padding: 14px; text-align: center; margin-top: 6px;
+  }
+  .mockup-score-val { font-size: 32px; font-weight: 700; color: #B4C8A8; }
+  .mockup-score-label { font-size: 10px; color: #4A5A46; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* Sections */
+  .section { padding: 100px 32px; scroll-margin-top: 80px; }
+  .section-label {
+    font-size: 13px; font-weight: 600; color: var(--color-accent);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px;
+  }
+  .section-h2 {
+    font-size: clamp(32px, 4vw, 48px); font-weight: 700; line-height: 1.15;
+    color: var(--color-text-primary); max-width: 640px;
+  }
+  .section-h2 span.accent { color: var(--color-accent); }
+  .section-body {
+    font-size: 16px; color: var(--color-text-secondary); line-height: 1.6; max-width: 560px;
+  }
+
+  /* Features triad */
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 48px; }
+  .feature-card {
+    background: white; border-radius: var(--radius-card); padding: 28px;
+    border: 1px solid var(--color-border-subtle);
+  }
+  .feature-card-num {
+    font-size: 48px; font-weight: 700; color: var(--color-accent-soft); line-height: 1; margin-bottom: 16px;
+  }
+  .feature-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+  .feature-card p { font-size: 14px; color: var(--color-text-secondary); line-height: 1.55; }
+
+  /* Alternating feature */
+  .alt-feature { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+  .alt-feature.mirror { direction: rtl; }
+  .alt-feature.mirror > * { direction: ltr; }
+
+  .accordion-item {
+    padding: 18px 0; border-bottom: 1px solid var(--color-border-subtle); cursor: pointer;
+    outline-offset: 4px;
+  }
+  .accordion-item:focus-visible { outline: 2px dashed var(--color-accent); border-radius: 6px; }
+  .accordion-item h4 { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+  .accordion-item p { font-size: 14px; color: var(--color-text-secondary); line-height: 1.55; margin-top: 8px; display: none; }
+  .accordion-item.open p { display: block; }
+  .accordion-icon { color: var(--color-accent); flex-shrink: 0; }
+
+  /* Showcase */
+  .showcase-head { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; margin-bottom: 48px; }
+  .showcase-report {
+    background: white; border-radius: var(--radius-card); padding: 32px;
+    border: 1px solid var(--color-border-subtle);
+  }
+  .report-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .report-block { text-align: center; padding: 24px; border-radius: 16px; }
+  .report-block.before { background: #F8F6F2; }
+  .report-block.after { background: #EDF2E8; }
+  .report-block-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary); margin-bottom: 8px; }
+  .report-block-val { font-size: 42px; font-weight: 700; }
+  .report-block-val.good { color: var(--color-accent); }
+  .report-improvements { margin-top: 28px; }
+  .report-improvements h4 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+  .report-improvements li {
+    font-size: 14px; color: var(--color-text-secondary); padding: 6px 0;
     display: flex; align-items: center; gap: 8px;
-    padding: 12px 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    font-size: 12px; color: #B7B0A4;
   }
-  .dots { display: flex; gap: 6px; }
-  .dots i { width: 8px; height: 8px; border-radius: 50%; display: block; background: #6a635a; }
-  .dots i:nth-child(1) { background: #C2A27A; }
-  .win-grid { display: grid; grid-template-columns: 0.9fr 1.2fr; min-height: 280px; }
-  .win-side { padding: 18px; border-right: 1px solid rgba(255,255,255,0.06); }
-  .win-side h3 { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: #F0EBE1; }
-  .doc {
+  .report-improvements li::before { content: '✓'; color: var(--color-accent); font-weight: 700; }
+
+  .showcase-captions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 32px; }
+  .showcase-cap h4 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .showcase-cap p { font-size: 14px; color: var(--color-text-secondary); line-height: 1.55; }
+
+  /* Security */
+  .badge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .badge-card {
+    background: white; border: 1px solid var(--color-border-subtle); border-radius: 16px;
+    padding: 24px; text-align: center;
+  }
+  .badge-card h4 { font-size: 14px; font-weight: 600; margin-top: 10px; }
+  .badge-card p { font-size: 12px; color: var(--color-text-secondary); }
+
+  /* Testimonials */
+  .testimonial-cards { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 16px; margin-top: 40px; }
+  .testimonial-main {
+    background: var(--color-card-green); border-radius: var(--radius-card); padding: 32px;
+    color: white;
+  }
+  .testimonial-main .featured-tag {
+    font-size: 12px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;
+  }
+  .testimonial-main blockquote { font-size: 16px; line-height: 1.6; margin: 16px 0 20px; font-style: italic; }
+  .testimonial-main .attribution { font-size: 13px; opacity: 0.85; }
+  .testimonial-strip {
+    border-radius: 16px;
+    display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end;
+    padding: 18px 16px; font-size: 13px; font-weight: 600; color: white;
+    position: relative; overflow: hidden; min-height: 200px;
+    writing-mode: horizontal-tb;
+  }
+  .testimonial-strip .strip-company {
+    font-size: 13px; font-weight: 600; line-height: 1.3;
+  }
+  .testimonial-strip .strip-role {
+    font-size: 11px; font-weight: 400; opacity: 0.7; margin-top: 4px;
+  }
+  .testimonial-strip::before {
+    content: '';
+    position: absolute; top: 14px; right: 14px;
+    width: 32px; height: 32px; border-radius: 8px;
+    background: rgba(255,255,255,0.15);
+  }
+
+  /* FAQ */
+  .faq-wrap { display: grid; grid-template-columns: 380px 1fr; gap: 60px; }
+  .faq-item {
+    padding: 20px 0; border-bottom: 1px solid var(--color-border-subtle); cursor: pointer;
     display: flex; justify-content: space-between; align-items: center;
-    padding: 8px 0; font-size: 13px; color: #C9C2B6;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
   }
-  .win-main { padding: 18px 20px; }
-  .q { font-size: 13px; color: #A8A196; margin-bottom: 10px; }
-  .a { font-size: 15px; line-height: 1.5; }
-  .cite {
-    display: inline-block; margin-top: 10px;
-    font-size: 12px; padding: 4px 8px; border-radius: 6px;
-    background: rgba(255,255,255,0.06); color: #D7C8A6;
-  }
-  .vrow { display: flex; justify-content: space-between; font-size: 12px; margin-top: 8px; color: #B7B0A4; }
-  .ok { color: #C9D4B4; }
+  .faq-item h4 { font-size: 16px; font-weight: 500; }
+  .faq-item p { font-size: 14px; color: var(--color-text-secondary); line-height: 1.55; margin-top: 10px; display: none; }
+  .faq-item.open p { display: block; }
 
-  .about {
-    padding: 88px 0 40px;
-    display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 48px; align-items: center;
-  }
-  .about h2 {
-    font-family: "Newsreader", Georgia, serif;
-    font-size: clamp(32px, 4vw, 48px);
-    font-weight: 500; letter-spacing: -0.03em; line-height: 1.12;
-  }
-  .about h2 em { font-style: italic; }
-  .about p { margin-top: 16px; color: var(--muted); max-width: 46ch; }
-  .metric {
-    position: relative; border-radius: 22px; overflow: hidden; min-height: 320px;
-    color: var(--bone);
-  }
-  .metric img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .metric-card {
-    position: absolute; inset: auto 18px 18px 18px;
-    background: var(--glass-2); border-radius: 16px; padding: 18px;
-    backdrop-filter: blur(12px);
-  }
-  .metric-card strong { font-size: 40px; letter-spacing: -0.04em; display: block; }
-  .metric-card span { font-size: 14px; color: #D5CFC3; }
+  /* Blog */
+  .blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 40px; }
+  .blog-card { background: white; border-radius: var(--radius-card); overflow: hidden; border: 1px solid var(--color-border-subtle); }
+  .blog-thumb { aspect-ratio: 16/10; background: var(--color-accent-soft); }
+  .blog-content { padding: 20px; }
+  .blog-content h4 { font-size: 16px; font-weight: 600; line-height: 1.35; margin-bottom: 10px; }
+  .blog-meta { font-size: 13px; color: var(--color-text-secondary); display: flex; gap: 12px; }
 
-  .tools {
-    padding: 28px 0 10px;
-    display: flex; flex-wrap: wrap; justify-content: center; gap: 28px;
-    color: var(--muted); font-size: 13px; font-weight: 500;
+  /* Final CTA */
+  .cta-final {
+    text-align: center; padding: 80px 32px 100px;
   }
 
-  .caps { padding: 72px 0 40px; }
-  .caps h2 {
-    font-family: "Newsreader", Georgia, serif;
-    font-size: clamp(32px, 4vw, 48px); font-weight: 500; letter-spacing: -0.03em;
-    max-width: 16ch;
+  /* Footer */
+  .footer {
+    padding: 60px 32px 40px; border-top: 1px solid var(--color-border-subtle);
+    display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr; gap: 40px;
   }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px; }
-  .card {
-    background: #fff; border: 1px solid var(--line); border-radius: 22px;
-    padding: 22px; min-height: 180px;
-    display: flex; flex-direction: column; justify-content: space-between;
-  }
-  .card h3 { font-size: 18px; margin: 10px 0 6px; }
-  .card p { color: var(--muted); font-size: 14px; }
-  .more { font-size: 13px; font-weight: 600; }
-
-  .inside { padding: 72px 0 20px; text-align: center; }
-  .inside h2 {
-    font-family: "Newsreader", Georgia, serif;
-    font-size: clamp(32px, 4vw, 48px); font-weight: 500; letter-spacing: -0.03em;
-  }
-  .band {
-    position: relative; margin-top: 32px; border-radius: 28px; overflow: hidden; min-height: 420px;
-  }
-  .band > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .tiles {
-    position: relative; z-index: 2;
-    width: min(860px, calc(100% - 32px));
-    margin: 90px auto;
-    background: var(--glass); color: #E8E2D6;
-    border-radius: 18px; padding: 16px;
-    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
-    backdrop-filter: blur(16px);
-    text-align: left;
-  }
-  .tile { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 14px; }
-  .tile small { color: #B7B0A4; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
-  .tile strong { display: block; margin-top: 8px; font-size: 16px; }
-
-  .process { padding: 80px 0 40px; }
-  .process h2 {
-    font-family: "Newsreader", Georgia, serif;
-    text-align: center; font-size: clamp(32px, 4vw, 48px); font-weight: 500; letter-spacing: -0.03em;
-    margin-bottom: 36px;
-  }
-  .step {
-    display: grid; grid-template-columns: 64px 1fr 1fr; gap: 24px;
-    align-items: center; margin-bottom: 18px;
-    background: #fff; border: 1px solid var(--line); border-radius: 22px;
-    padding: 16px;
-  }
-  .step img { width: 100%; height: 160px; object-fit: cover; border-radius: 14px; }
-  .num {
-    width: 40px; height: 40px; border-radius: 50%;
-    display: grid; place-items: center; background: var(--ink); color: var(--bone);
-    font-size: 13px; font-weight: 600;
-  }
-  .step h3 { font-size: 22px; margin-bottom: 6px; }
-
-  .who { padding: 56px 0 80px; }
-  .who h2 {
-    font-family: "Newsreader", Georgia, serif;
-    text-align: center; font-size: clamp(32px, 4vw, 44px); font-weight: 500; letter-spacing: -0.03em;
-    margin-bottom: 28px;
-  }
-  .who-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-  .who .card { min-height: 160px; }
-
-  .close {
-    padding: 20px 0 80px; text-align: center;
-  }
-  .close h2 {
-    font-family: "Newsreader", Georgia, serif;
-    font-size: clamp(32px, 4vw, 48px); font-weight: 500;
-  }
-  form {
-    width: min(520px, 100%); margin: 24px auto 0;
-    display: grid; gap: 10px; text-align: left;
-  }
-  label { font-size: 13px; color: var(--muted); }
-  input, textarea {
-    width: 100%; border: 1px solid var(--line); background: #fff;
-    border-radius: 12px; padding: 12px 14px; font: inherit;
-  }
-  input:focus, textarea:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
-  .note { font-size: 13px; color: var(--muted); text-align: center; }
-
-  .foot-hero {
-    position: relative; min-height: 340px; overflow: hidden;
-    display: grid; place-items: end center;
-  }
-  .foot-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 80%; }
-  .word {
-    position: relative; z-index: 2;
-    font-family: "Newsreader", Georgia, serif;
-    font-size: clamp(64px, 16vw, 180px);
-    color: rgba(244,240,232,0.88);
-    letter-spacing: -0.04em; line-height: 0.8;
-    padding-bottom: 20px;
-  }
-  footer {
-    padding: 28px 0 40px;
-    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-    color: var(--muted); font-size: 13px;
+  .footer a { font-size: 13px; color: var(--color-text-secondary); text-decoration: none; display: block; margin-bottom: 6px; }
+  .footer a:hover { color: var(--color-text-primary); }
+  .footer h5 { font-size: 13px; font-weight: 600; margin-bottom: 14px; color: var(--color-text-primary); }
+  .footer-bottom {
+    padding: 20px 32px 32px; display: flex; justify-content: space-between;
+    font-size: 13px; color: var(--color-text-secondary);
   }
 
-  .rise { animation: up 800ms var(--ease) both; }
-  @keyframes up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    html { scroll-behavior: auto; }
+  }
 
-  @media (max-width: 860px) {
-    .nav-mid { display: none; }
-    .nav-toggle { display: block; }
-    .about, .win-grid, .grid2, .who-grid, .tiles, .step { grid-template-columns: 1fr; }
-    .win-side { border-right: 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .stage { min-height: 520px; }
-    .window { margin-top: 120px; }
-    .step { grid-template-columns: 1fr; }
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .nav-links.open {
+      display: flex; flex-direction: column; position: absolute; top: 100%; left: 0;
+      background: white; width: 100%; padding: 20px 32px; gap: 16px;
+      border-bottom: 1px solid var(--color-border-subtle); box-shadow: 0 12px 32px rgba(20,28,18,0.08);
+      z-index: 200;
+    }
+    .nav-mobile-toggle { display: block; }
+    .nav-right-links { display: none; }
+    .nav-bar { padding: 12px 20px; flex-wrap: wrap; }
+    .hero-section { padding: 60px 20px 0; }
+    .hero-headline { font-size: 36px; }
+    .hero-subhead { font-size: 15px; }
+    .hero-mockup { margin: 32px auto 0; }
+    .section { padding: 60px 20px; }
+    .section-h2 { font-size: 28px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .features-grid .feature-card { padding: 20px; }
+    .features-grid .feature-card-num { font-size: 36px; }
+    .alt-feature, .alt-feature.mirror { grid-template-columns: 1fr; gap: 40px; }
+    .alt-feature.mirror > :first-child { order: 2; }
+    .alt-feature.mirror > :last-child { order: 1; }
+    .faq-wrap, .showcase-head { grid-template-columns: 1fr; }
+    .testimonial-cards { grid-template-columns: 1fr; }
+    .testimonial-strip { min-height: 100px; }
+    .blog-grid { grid-template-columns: 1fr; }
+    .footer { grid-template-columns: 1fr 1fr; }
+    .mockup-panes { grid-template-columns: 1fr; }
+    .showcase-captions { grid-template-columns: 1fr; }
+    .report-metrics { grid-template-columns: 1fr; }
+    .badge-grid { grid-template-columns: 1fr; }
+    .btn { padding: 12px 20px; min-height: 44px; }
+    .page-sheet { margin: 0; border-radius: 0; }
+  }
+  @media (min-width: 769px) { .nav-mobile-toggle { display: none; } }
+  @media (min-width: 1400px) {
+    .page-sheet { max-width: 1280px; }
+    .shell { max-width: 1280px; }
   }
 </style>
 </head>
 <body>
-<header>
-  <div class="wrap nav">
-    <a class="brand" href="/"><span class="mark">C</span> CiteRAG</a>
-    <div class="nav-mid">
-      <a href="#capabilities">Product</a>
-      <a href="#process">How it works</a>
-      <a href="/demo">Demo</a>
-    </div>
-    <div class="nav-right">
-      <a class="btn btn-line" href="#book">Book an audit</a>
-      <a class="btn btn-dark" href="/demo">Start demo</a>
-    </div>
-  </div>
-</header>
 
-<section class="hero">
-  <div class="wrap rise">
-    <p class="eyebrow">Citation-grounded RAG, now in public demo</p>
-    <h1>Your AI answers <em>that show their sources.</em></h1>
-    <p class="hero-sub">Hybrid retrieve, verify every claim, refuse when the documents do not contain the answer.</p>
-    <div class="hero-ctas">
-      <a class="btn btn-dark" href="/demo">Start demo</a>
-      <a class="btn btn-line" href="#book">Book an audit</a>
-    </div>
+<div class="page-sheet">
+
+<!-- Navigation -->
+<nav class="nav-bar" role="navigation" aria-label="Main navigation">
+  <button class="nav-mobile-toggle" aria-label="Toggle navigation" aria-expanded="false" onclick="const links=this.nextElementSibling;links.classList.toggle('open');this.setAttribute('aria-expanded',links.classList.contains('open'))" style="background:none;border:none;font-size:22px;cursor:pointer;padding:4px 8px;color:var(--color-text-primary);">
+    ☰
+  </button>
+  <div class="nav-links">
+    <a href="#features">Platform</a>
+    <a href="#solutions">How it works</a>
+    <a href="/demo">Live Demo</a>
+    <a href="#faq">FAQ</a>
   </div>
-  <div class="stage">
-    <img class="bg" src="/assets/v3/hero-ridge.jpg" alt="Mist over wet basalt and still water at dawn" width="1280" height="720" fetchpriority="high">
-    <div class="window" aria-label="CiteRAG product preview">
-      <div class="win-bar">
-        <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
-        CiteRAG · refund-policy.md
-        <span style="margin-left:auto">verify 2/2</span>
+  <div class="nav-wordmark">CITERAG</div>
+  <div class="nav-right-links" style="display:flex;gap:12px;align-items:center;">
+    <a href="#" style="font-size:14px;font-weight:500;color:var(--color-text-secondary);text-decoration:none;">Docs</a>
+    <a href="#" style="font-size:14px;font-weight:500;color:var(--color-text-secondary);text-decoration:none;">Login</a>
+    <a href="/demo" class="btn btn-primary">Get Accuracy Audit</a>
+    <a href="/app" class="btn btn-outline" style="font-size:13px;padding:8px 16px;">Open App</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero-section">
+  <div class="hero-glow"></div>
+  <h1 class="hero-headline">Your AI answers.<br><span class="accent">Proven by citations.</span></h1>
+  <p class="hero-subhead">Fix broken RAG retrieval and ship document AI that shows its sources — with citation accuracy you can measure, not just hope for.</p>
+  <div class="hero-ctas">
+    <a href="#" class="btn btn-primary" style="font-size:15px;padding:14px 28px;">Get Accuracy Audit</a>
+    <a href="#" class="btn btn-dark" style="font-size:15px;padding:14px 28px;">View Sample Report ↓</a>
+  </div>
+  <div class="hero-mockup">
+    <div class="mockup-bar">
+      <span class="mockup-dot"></span><span class="mockup-dot"></span><span class="mockup-dot"></span>
+    </div>
+    <div class="mockup-panes">
+      <div class="mockup-pane">
+        <div class="mockup-label">Documents</div>
+        <div class="mockup-doc active"><div class="mockup-doc-icon"></div> refund-policy.pdf</div>
+        <div class="mockup-doc"><div class="mockup-doc-icon"></div> terms-2026.pdf</div>
+        <div class="mockup-doc"><div class="mockup-doc-icon"></div> compliance.md</div>
+        <div class="mockup-doc"><div class="mockup-doc-icon"></div> pricing.docx</div>
       </div>
-      <div class="win-grid">
-        <div class="win-side">
-          <h3>Documents</h3>
-          <div class="doc"><span>refund-policy.md</span><span class="ok">indexed</span></div>
-          <div class="doc"><span>terms-2026.md</span><span class="ok">indexed</span></div>
-          <div class="doc"><span>pricing.md</span><span class="ok">indexed</span></div>
+      <div class="mockup-pane">
+        <div class="mockup-label">Chat</div>
+        <div class="mockup-chat">
+          <div class="mockup-msg user">What is the refund policy for annual subscriptions?</div>
+          <div class="mockup-msg ai">
+            Annual subscriptions can be refunded within 30 days of purchase.
+            <span class="mockup-cite">Source: refund-policy.pdf, p.2</span>
+          </div>
         </div>
-        <div class="win-main">
-          <div class="q">What is the refund policy for annual subscriptions?</div>
-          <div class="a">Annual subscriptions can be refunded within 30 days of the initial purchase.</div>
-          <span class="cite">Source: refund-policy.md, p.N/A</span>
-          <div class="vrow"><span>refund-policy.md</span><span class="ok">verified</span></div>
-          <div class="vrow"><span>Unsupported claim</span><span>flagged</span></div>
+      </div>
+      <div class="mockup-pane">
+        <div class="mockup-label">Verification</div>
+        <div class="mockup-verify">
+          <div class="mockup-vrow pass"><span>refund-policy.pdf</span><span>✓ verified</span></div>
+          <div class="mockup-vrow pass"><span>terms-2026.pdf</span><span>✓ verified</span></div>
+          <div class="mockup-vrow fail"><span>pricing.docx</span><span>✗ unsupported</span></div>
+        </div>
+        <div class="mockup-score">
+          <div class="mockup-score-label">Faithfulness Score</div>
+          <div class="mockup-score-val">0.94</div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="wrap about" id="about">
+<!-- Logo Marquee -->
+<section class="section" style="padding:48px 32px;">
+  <div style="display:flex;justify-content:center;gap:48px;flex-wrap:wrap;opacity:0.35;filter:grayscale(1);">
+    <span style="font-size:16px;font-weight:600;color:var(--color-text-secondary);">As seen on</span>
+    <span style="font-size:15px;font-weight:600;color:var(--color-text-secondary);">Upwork</span>
+    <span style="font-size:15px;font-weight:600;color:var(--color-text-secondary);">Hub71</span>
+    <span style="font-size:15px;font-weight:600;color:var(--color-text-secondary);">Product Hunt</span>
+    <span style="font-size:15px;font-weight:600;color:var(--color-text-secondary);">AMD Hackathon</span>
+  </div>
+</section>
+
+<!-- Feature Trio -->
+<section class="section" id="features">
+  <div class="section-label">The Platform</div>
+  <h2 class="section-h2">Measure, fix, and prove<br><span class="accent">RAG quality in one platform.</span></h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-card-num">01</div>
+      <h3>Accuracy scores.</h3>
+      <p>Every answer is graded for faithfulness, context precision, and citation accuracy — before your users ever see it. RAGAS metrics drive every decision.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-num">02</div>
+      <h3>Retrieval diagnostics.</h3>
+      <p>See exactly which chunks were retrieved, reranked, and used — and trace why a wrong answer happened. No more guessing which layer failed.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-num">03</div>
+      <h3>Quality gates.</h3>
+      <p>Citation regressions block deploys like failing unit tests. Faithfulness drops below 0.90? The pipeline won't ship. Hallucinations never reach production.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Alternating Feature 1 -->
+<section class="section" id="solutions">
+  <div class="alt-feature">
+    <div style="background:var(--color-accent-soft);border-radius:24px;padding:48px 36px;min-height:380px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+      <div style="background:white;border-radius:16px;padding:18px 24px;width:80%;text-align:center;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(20,28,18,0.08);">Documents</div>
+      <div style="background:white;border-radius:16px;padding:18px 24px;width:70%;text-align:center;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(20,28,18,0.08);">Semantic Chunks</div>
+      <div style="background:white;border-radius:16px;padding:18px 24px;width:60%;text-align:center;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(20,28,18,0.08);">Hybrid Index</div>
+      <div style="background:white;border-radius:16px;padding:18px 24px;width:50%;text-align:center;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(20,28,18,0.08);">Cross-Encoder Rerank</div>
+      <div style="background:var(--color-accent);border-radius:16px;padding:18px 24px;width:40%;text-align:center;font-size:14px;font-weight:600;color:white;">Verified Answer</div>
+    </div>
+    <div>
+      <div class="section-label">How It Works</div>
+      <h2 class="section-h2">Fix the retrieval layer.<br><span class="accent">Not just the prompt.</span></h2>
+      <p class="section-body" style="margin-top:16px;">Most "RAG fixes" tweak prompts and hope. We rebuild the four layers that actually determine answer quality.</p>
+      <div style="margin-top:28px;">
+        <div class="accordion-item open" tabindex="0" role="button" aria-expanded="true" onclick="this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))}">
+          <h4><span class="accordion-icon">⚙</span> Hybrid Retrieval</h4>
+          <p>Vector search misses exact identifiers — product codes, error numbers, policy references. We combine semantic + keyword search so nothing falls through.</p>
+        </div>
+        <div class="accordion-item" tabindex="0" role="button" aria-expanded="false" onclick="this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))}">
+          <h4><span class="accordion-icon">⇅</span> Cross-Encoder Reranking</h4>
+          <p>Retrieve 50 candidates, rerank down to the best 5. Better accuracy, lower token cost, fewer tokens for the model to get confused by.</p>
+        </div>
+        <div class="accordion-item" tabindex="0" role="button" aria-expanded="false" onclick="this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))}">
+          <h4><span class="accordion-icon">🕒</span> Freshness & Permissions</h4>
+          <p>Stale documents poison answers. Date metadata, recency filters, and retrieval-time permission checks keep citations current and compliant.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Alternating Feature 2 (mirrored) -->
+<section class="section">
+  <div class="alt-feature mirror">
+    <div style="background:var(--illustration-bg);border-radius:24px;padding:40px;min-height:380px;display:flex;align-items:center;justify-content:center;">
+      <div style="background:white;border-radius:16px;padding:28px;width:100%;box-shadow:0 12px 40px rgba(20,28,18,0.12);">
+        <div style="font-size:15px;line-height:1.6;color:var(--color-text-primary);">
+          Annual subscriptions can be refunded within 30 days of purchase.
+          <span style="display:inline-flex;align-items:center;gap:3px;font-size:12px;color:var(--color-accent);background:var(--color-accent-soft);padding:2px 8px;border-radius:4px;font-weight:600;margin-left:6px;">Source: refund-policy.pdf, p.2</span>
+        </div>
+        <div style="margin-top:20px;display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#F0F5EA;border-radius:8px;font-size:13px;">
+            <span>refund-policy.pdf, p.2</span>
+            <span style="color:var(--color-accent);font-weight:600;">✓ Claim verified</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#F0F5EA;border-radius:8px;font-size:13px;">
+            <span>terms-2026.pdf, p.5</span>
+            <span style="color:var(--color-accent);font-weight:600;">✓ Claim verified</span>
+          </div>
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--color-text-secondary);">Citation accuracy: <strong style="color:var(--color-accent);">2/2 verified</strong></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-label">Citation Verification</div>
+      <h2 class="section-h2">Every claim, traced<br><span class="accent">to its source.</span></h2>
+      <p class="section-body" style="margin-top:16px;">Answers carry inline citations down to the page and paragraph. A verification layer checks that each cited source actually supports the claim — fabricated citations get flagged, not shipped.</p>
+      <div style="margin-top:28px;">
+        <div class="accordion-item open" tabindex="0" role="button" aria-expanded="true" onclick="this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))}">
+          <h4><span class="accordion-icon">✓</span> Inline Source Citations</h4>
+          <p>Every factual claim links to its source document, page, and section. Users can verify any answer in one click.</p>
+        </div>
+        <div class="accordion-item" tabindex="0" role="button" aria-expanded="false" onclick="this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))}">
+          <h4><span class="accordion-icon">🔍</span> Citation Verification</h4>
+          <p>An automated checker confirms each citation actually supports its claim. Accuracy rate reported on every answer.</p>
+        </div>
+        <div class="accordion-item" tabindex="0" role="button" aria-expanded="false" onclick="this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))}">
+          <h4><span class="accordion-icon">🤚</span> Honest Refusals</h4>
+          <p>When your documents don't contain the answer, the system says "I don't know" — measured as a feature, not a failure.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Full-Width Showcase -->
+<section class="section" style="background:white;">
+  <div class="showcase-head">
+    <div>
+      <div class="section-label">The Proof</div>
+      <h2 class="section-h2">From broken RAG to<br><span class="accent">board-ready proof.</span></h2>
+    </div>
+    <p class="section-body">Our evaluation harness turns "the chatbot feels wrong" into numbers your stakeholders can sign off on. Baseline score, prioritized fixes, and a verified after-state — in weeks, not months.</p>
+  </div>
+  <div class="showcase-report">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:28px;">
+      <span style="font-size:13px;font-weight:600;color:var(--color-accent);text-transform:uppercase;letter-spacing:0.06em;">Accuracy Audit Report</span>
+      <span style="font-size:13px;color:var(--color-text-secondary);">· client_docs · 2026</span>
+    </div>
+    <div class="report-metrics">
+      <div class="report-block before">
+        <div class="report-block-label">Baseline</div>
+        <div class="report-block-val" style="color:#B08A5C;">0.72</div>
+        <div style="font-size:13px;color:var(--color-text-secondary);margin-top:4px;">Faithfulness</div>
+      </div>
+      <div class="report-block after">
+        <div class="report-block-label">Optimized</div>
+        <div class="report-block-val good">0.94</div>
+        <div style="font-size:13px;color:var(--color-text-secondary);margin-top:4px;">Faithfulness</div>
+      </div>
+    </div>
+    <div class="report-improvements">
+      <h4>Improvements applied</h4>
+      <ul style="list-style:none;padding:0;">
+        <li>Implemented hybrid search (vector + BM25)</li>
+        <li>Added Cohere cross-encoder reranking</li>
+        <li>Fixed semantic chunking strategy</li>
+        <li>Added metadata enrichment for source tracking</li>
+      </ul>
+    </div>
+  </div>
+  <div class="showcase-captions">
+    <div class="showcase-cap">
+      <h4>Baseline audit.</h4>
+      <p>50–200 real questions run against your current pipeline. You get a scorecard, not vibes.</p>
+    </div>
+    <div class="showcase-cap">
+      <h4>Prioritized fixes.</h4>
+      <p>Chunking, hybrid search, reranking, metadata — ranked by impact on your score.</p>
+    </div>
+    <div class="showcase-cap">
+      <h4>Verified after-state.</h4>
+      <p>Same questions, same grading, new numbers. Proof you can put in front of a client or board.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Security -->
+<section class="section">
+  <div class="alt-feature">
+    <div class="badge-grid">
+      <div class="badge-card">
+        <div style="font-size:28px;">🔒</div>
+        <h4>Permission Filters</h4>
+        <p>Enforced at retrieval time — never in the prompt</p>
+      </div>
+      <div class="badge-card">
+        <div style="font-size:28px;">🏠</div>
+        <h4>Data Residency</h4>
+        <p>Deploy in your region, your cloud, your rules</p>
+      </div>
+      <div class="badge-card">
+        <div style="font-size:28px;">🗑️</div>
+        <h4>Zero Retention</h4>
+        <p>Documents never train external models</p>
+      </div>
+      <div class="badge-card">
+        <div style="font-size:28px;">🔑</div>
+        <h4>SSO & SAML</h4>
+        <p>Enterprise identity, audit logs included</p>
+      </div>
+    </div>
+    <div>
+      <div class="section-label">Security</div>
+      <h2 class="section-h2">Enterprise-grade<br><span class="accent">document handling.</span></h2>
+      <p class="section-body" style="margin-top:16px;">Permission filters enforced at retrieval time — never in the prompt. Audit logs, SSO, and data residency options for regulated teams.</p>
+      <div style="margin-top:24px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:15px;">
+          <span style="color:var(--color-accent);font-weight:700;">✓</span> Your data stays yours — zero-retention mode available
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:15px;">
+          <span style="color:var(--color-accent);font-weight:700;">✓</span> Full IP and commercial rights protection
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:15px;">
+          <span style="color:var(--color-accent);font-weight:700;">✓</span> Retrieval-time permission checks keep citations compliant
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Customer Stories -->
+<section class="section">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+    <h2 class="section-h2" style="font-size:40px;">Trusted by teams<br><span class="accent">shipping document AI.</span></h2>
+    <a href="#" class="btn btn-outline">View all stories</a>
+  </div>
+  <div class="testimonial-cards">
+    <div class="testimonial-main">
+      <div class="featured-tag">Featured story</div>
+      <blockquote>"Our RAG chatbot was confidently citing a refund policy we'd retired eight months ago. They found it in a day, fixed the pipeline in a week, and now every answer ships with an accuracy score."</blockquote>
+      <div class="attribution">Priya Sharma, VP Engineering · Finovate</div>
+    </div>
+    <div class="testimonial-strip" style="background:var(--color-card-teal);">
+      <div class="strip-company">MetroHealth AI</div>
+      <div class="strip-role">Clinical Compliance</div>
+    </div>
+    <div class="testimonial-strip" style="background:var(--color-card-gold);">
+      <div class="strip-company">LexBridge Legal</div>
+      <div class="strip-role">Document Review</div>
+    </div>
+    <div class="testimonial-strip" style="background:var(--color-card-rose);">
+      <div class="strip-company">EduScribe</div>
+      <div class="strip-role">Curriculum Q&A</div>
+    </div>
+    <div class="testimonial-strip" style="background:var(--color-card-slate);">
+      <div class="strip-company">PolicyWatch</div>
+      <div class="strip-role">Regulatory Intel</div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section">
+  <div class="faq-wrap">
+    <h2 class="section-h2">Frequently asked<br><span class="accent">questions.</span></h2>
+    <div>
+      <div class="faq-item open" tabindex="0" role="button" aria-expanded="true" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
+        <div>
+          <h4>How is this different from LangChain or LlamaIndex?</h4>
+          <p>Those are frameworks — this is the finished, evaluated system built on them. You get measurable citation accuracy, not a toolkit you assemble yourself.</p>
+        </div>
+        <span style="font-size:18px;color:var(--color-text-secondary);flex-shrink:0;margin-left:16px;">⌄</span>
+      </div>
+      <div class="faq-item" tabindex="0" role="button" aria-expanded="false" onclick="this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))}">
+        <div>
+          <h4>What does an accuracy audit include?</h4>
+          <p>A golden dataset built from your real documents, baseline scores across faithfulness/precision/citation accuracy, and a prioritized fix list. Fixed price, delivered in days.</p>
+        </div>
+        <span style="font-size:18px;color:var(--color-text-secondary);flex-shrink:0;margin-left:16px;">⌄</span>
+      </div>
+      <div class="faq-item" tabindex="0" role="button" aria-expanded="false" onclick="this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))}">
+        <div>
+          <h4>Can you fix our existing RAG, or do we have to rebuild?</h4>
+          <p>Most engagements are fixes, not rebuilds. We work inside your current stack (LangChain, LlamaIndex, custom) and replace only what's dragging the score down.</p>
+        </div>
+        <span style="font-size:18px;color:var(--color-text-secondary);flex-shrink:0;margin-left:16px;">⌄</span>
+      </div>
+      <div class="faq-item" tabindex="0" role="button" aria-expanded="false" onclick="this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))}">
+        <div>
+          <h4>Which LLMs do you support?</h4>
+          <p>GPT-4o, Claude, Command R+, and open-source models via Ollama — chosen per workload based on measured faithfulness, not hype.</p>
+        </div>
+        <span style="font-size:18px;color:var(--color-text-secondary);flex-shrink:0;margin-left:16px;">⌄</span>
+      </div>
+      <div class="faq-item" tabindex="0" role="button" aria-expanded="false" onclick="this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))}">
+        <div>
+          <h4>How do you handle permissions and private documents?</h4>
+          <p>Permission filters apply at retrieval time, so the model never sees chunks a user isn't allowed to access. Zero-retention and on-prem options available.</p>
+        </div>
+        <span style="font-size:18px;color:var(--color-text-secondary);flex-shrink:0;margin-left:16px;">⌄</span>
+      </div>
+      <div class="faq-item" tabindex="0" role="button" aria-expanded="false" onclick="this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))}">
+        <div>
+          <h4>What happens after the fix?</h4>
+          <p>Optional monthly retainer: continuous evaluation on live traffic, regression alerts, and a monthly accuracy report your stakeholders can actually read.</p>
+        </div>
+        <span style="font-size:18px;color:var(--color-text-secondary);flex-shrink:0;margin-left:16px;">⌄</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Blog -->
+<section class="section" style="padding-top:0;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+    <h2 class="section-h2" style="font-size:40px;">Latest from<br><span class="accent">the lab.</span></h2>
+    <a href="#" class="btn btn-outline">All articles</a>
+  </div>
+  <div class="blog-grid">
+    <div class="blog-card">
+      <div class="blog-thumb" style="background:#E8EDE2;"></div>
+      <div class="blog-content">
+        <div class="blog-meta"><span>Engineering</span><span>·</span><span>Aug 2026</span></div>
+        <h4>Why your RAG chatbot cites retired documents</h4>
+      </div>
+    </div>
+    <div class="blog-card">
+      <div class="blog-thumb" style="background:#E2EAE5;"></div>
+      <div class="blog-content">
+        <div class="blog-meta"><span>Product</span><span>·</span><span>Jul 2026</span></div>
+        <h4>Citation accuracy is a number. Here's how to measure it.</h4>
+      </div>
+    </div>
+    <div class="blog-card">
+      <div class="blog-thumb" style="background:#E5E2E8;"></div>
+      <div class="blog-content">
+        <div class="blog-meta"><span>Engineering</span><span>·</span><span>Jun 2026</span></div>
+        <h4>Hybrid search vs vector-only: the $10K mistake</h4>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Final CTA -->
+<section class="cta-final">
+  <h2 class="section-h2" style="max-width:700px;margin:0 auto 24px;">Get answers you can prove.</h2>
+  <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+    <a href="#" class="btn btn-primary" style="font-size:15px;padding:14px 28px;">Get Accuracy Audit</a>
+    <a href="#" class="btn btn-outline" style="font-size:15px;padding:14px 28px;">View Sample Report</a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
   <div>
-    <h2>Measure the answer before you ship it, <em>not after a user complains.</em></h2>
-    <p>CiteRAG grades faithfulness and citation support on the way out. The live demo runs the same retrieve-then-verify path as the API.</p>
-    <p style="margin-top:20px"><a class="btn btn-dark" href="/demo">Start demo</a></p>
-  </div>
-  <div class="metric">
-    <img src="/assets/v3/metric-frame.jpg" alt="Dawn ridge through mist" width="864" height="1152">
-    <div class="metric-card">
-      <strong>2/2</strong>
-      <span>Sample citation check on the demo corpus. Your score comes from your documents.</span>
+    <div class="nav-wordmark" style="margin-bottom:12px;">CITERAG</div>
+    <p style="font-size:13px;color:var(--color-text-secondary);line-height:1.5;margin-bottom:12px;">Citation-grounded RAG platform<br>for teams that need answers<br>they can verify.</p>
+    <div style="display:flex;gap:14px;">
+      <a href="https://x.com" style="font-size:13px;color:var(--color-text-secondary);text-decoration:none;">X</a>
+      <a href="https://linkedin.com" style="font-size:13px;color:var(--color-text-secondary);text-decoration:none;">LinkedIn</a>
+      <a href="https://github.com" style="font-size:13px;color:var(--color-text-secondary);text-decoration:none;">GitHub</a>
     </div>
   </div>
-</section>
-
-<div class="wrap tools" aria-label="Built with">
-  <span>LlamaIndex</span>
-  <span>FastAPI</span>
-  <span>Hybrid retrieve</span>
-  <span>RAGAS / DeepEval</span>
-  <span>Vercel</span>
-</div>
-
-<section class="wrap caps" id="capabilities">
-  <h2>Built for teams that cannot guess at sources.</h2>
-  <div class="grid2">
-    <article class="card">
-      <div>
-        <div class="more">01</div>
-        <h3>Hybrid retrieve</h3>
-        <p>Vector plus keyword so policy IDs and product codes do not fall through.</p>
-      </div>
-      <a class="more" href="/demo">Try it</a>
-    </article>
-    <article class="card">
-      <div>
-        <div class="more">02</div>
-        <h3>Citation verify</h3>
-        <p>Each claim is checked against the retrieved page. Fabrications get flagged.</p>
-      </div>
-      <a class="more" href="/demo">Try it</a>
-    </article>
-    <article class="card">
-      <div>
-        <div class="more">03</div>
-        <h3>Honest refusal</h3>
-        <p>If the corpus does not contain the answer, the system says so. That is a feature.</p>
-      </div>
-      <a class="more" href="/demo">Try it</a>
-    </article>
-    <article class="card">
-      <div>
-        <div class="more">04</div>
-        <h3>Accuracy report</h3>
-        <p>Baseline, ranked fixes, after-score. The audit is how you buy the work.</p>
-      </div>
-      <a class="more" href="#book">Book an audit</a>
-    </article>
-  </div>
-</section>
-
-<section class="wrap inside">
-  <h2>A workspace where every claim meets a page.</h2>
-  <div class="band">
-    <img src="/assets/v3/workspace-lake.jpg" alt="Fog over a still mountain lake" width="1568" height="672">
-    <div class="tiles">
-      <div class="tile"><small>Ingest</small><strong>Load the corpus</strong><p style="margin-top:8px;color:#B7B0A4;font-size:13px">md, txt, pdf, docx</p></div>
-      <div class="tile"><small>Query</small><strong>Ask with citations</strong><p style="margin-top:8px;color:#B7B0A4;font-size:13px">inline source markers</p></div>
-      <div class="tile"><small>Verify</small><strong>Score the claims</strong><p style="margin-top:8px;color:#B7B0A4;font-size:13px">supported or flagged</p></div>
-    </div>
-  </div>
-</section>
-
-<section class="wrap process" id="process">
-  <h2>From broken RAG to a number you can defend.</h2>
-  <article class="step">
-    <div class="num">01</div>
-    <img src="/assets/v3/step-connect.jpg" alt="Wet basalt close-up" width="864" height="1152">
-    <div>
-      <h3>Audit</h3>
-      <p>Golden questions from your real documents. A baseline score, not a vibe check.</p>
-    </div>
-  </article>
-  <article class="step">
-    <div class="num">02</div>
-    <img src="/assets/v3/step-fix.jpg" alt="Forest edge in fog" width="1248" height="832">
-    <div>
-      <h3>Fix</h3>
-      <p>Chunking, hybrid search, rerank, verify. Only the layers that move the score.</p>
-    </div>
-  </article>
-  <article class="step">
-    <div class="num">03</div>
-    <img src="/assets/v3/step-ship.jpg" alt="Pale sun over still water" width="1248" height="832">
-    <div>
-      <h3>Leave</h3>
-      <p>A report and a pipeline you own. Optional monthly re-score if you want it.</p>
-    </div>
-  </article>
-</section>
-
-<section class="wrap who">
-  <h2>For teams whose answers have to survive review.</h2>
-  <div class="who-grid">
-    <article class="card"><h3>Ops</h3><p>Policy and process bots that must cite the current PDF.</p></article>
-    <article class="card"><h3>Legal</h3><p>Review tools that should refuse when the clause is not there.</p></article>
-    <article class="card"><h3>Product</h3><p>Support and docs assistants you can put in front of a stakeholder.</p></article>
-  </div>
-</section>
-
-<section class="wrap close" id="book">
-  <h2>Book an accuracy audit.</h2>
-  <p class="hero-sub">Tell us the broken answers. We reply with scope. Nothing is auto-sent.</p>
-  <form onsubmit="return sendForm(event)">
-    <div>
-      <label for="name">Name</label>
-      <input id="name" name="name" autocomplete="name" required>
-    </div>
-    <div>
-      <label for="email">Work email</label>
-      <input id="email" name="email" type="email" autocomplete="email" required>
-    </div>
-    <div>
-      <label for="company">Company</label>
-      <input id="company" name="company" autocomplete="organization">
-    </div>
-    <div>
-      <label for="problem">What is citing the wrong source?</label>
-      <textarea id="problem" name="problem" rows="4" required maxlength="800"></textarea>
-    </div>
-    <button class="btn btn-dark" type="submit">Send audit request</button>
-    <p class="note" id="form-status">Opens a mail draft to hello@anilpervaiz.com.</p>
-  </form>
-</section>
-
-<div class="foot-hero">
-  <img src="/assets/v3/footer-rocks.jpg" alt="Dark shoreline rocks in mist" width="1152" height="864">
-  <div class="word">CiteRAG</div>
-</div>
-<footer class="wrap">
-  <div>CiteRAG</div>
   <div>
-    <a href="/demo">Demo</a> ·
-    <a href="/app">App</a> ·
-    <a href="/v1">Previous site</a> ·
-    <a href="mailto:hello@anilpervaiz.com">hello@anilpervaiz.com</a>
+    <h5>Product</h5>
+    <a href="#">Overview</a><a href="#">Accuracy Audits</a><a href="#">Evaluation Harness</a><a href="#">API</a><a href="#">Security</a>
+  </div>
+  <div>
+    <h5>Solutions</h5>
+    <a href="#">RAG Repair</a><a href="#">Document Q&A</a><a href="#">Regulated Industries</a><a href="#">Agencies</a>
+  </div>
+  <div>
+    <h5>Resources</h5>
+    <a href="#">Sample Report</a><a href="#">Benchmarks</a><a href="#">Blog</a><a href="#">Docs</a><a href="#">Status</a>
+  </div>
+  <div>
+    <h5>Company</h5>
+    <a href="#">About</a><a href="#">Contact</a><a href="#">Terms</a><a href="#">Privacy</a>
   </div>
 </footer>
+<div class="footer-bottom">
+  <span>© 2026 CiteRAG</span>
+  <span>Dark/Light</span>
+</div>
+
+</div><!-- /page-sheet -->
+
 <script>
-  function sendForm(e) {
-    e.preventDefault();
-    var body = [
-      'Name: ' + document.getElementById('name').value.trim(),
-      'Email: ' + document.getElementById('email').value.trim(),
-      'Company: ' + document.getElementById('company').value.trim(),
-      '',
-      document.getElementById('problem').value.trim()
-    ].join('\n');
-    window.location.href = 'mailto:hello@anilpervaiz.com?subject=' +
-      encodeURIComponent('CiteRAG accuracy audit') +
-      '&body=' + encodeURIComponent(body);
-    document.getElementById('form-status').textContent = 'Mail draft opened. If nothing appeared, email hello@anilpervaiz.com.';
-    return false;
-  }
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      if (href === '#') return;
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  // Accordion interaction for FAQ (single-open)
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.addEventListener('click', function() {
+      const parent = this.parentElement;
+      const wasOpen = this.classList.contains('open');
+      parent.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+      if (!wasOpen) this.classList.add('open');
+    });
+  });
 </script>
+
 </body>
 </html>
