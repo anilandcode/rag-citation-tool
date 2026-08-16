@@ -1,6 +1,12 @@
 # v4 stills
 
-- `hero-garden.jpg` original user still (1728x1152)
-- `hero-garden-web.jpg` compressed web crop for LCP
+Hero / page ground:
+- `meadow-hero.jpg` / `meadow-hero-web.jpg` rolling flower hills (user: landing background)
 
-Do not reprint graffiti from the still as UI copy.
+Section stills:
+- `meadow-gorge-web.jpg` two cliffs + stream = hybrid retrieve
+- `meadow-river-web.jpg` winding river = cite / verify path
+- `meadow-ascent-web.jpg` uphill path = audit offer
+
+Legacy:
+- `hero-garden.jpg` garden computer (unused on current /)
