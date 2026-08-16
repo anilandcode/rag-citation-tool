@@ -315,7 +315,34 @@
   .faq-item.open p { display: block; }
 
   /* Blog */
-  .blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 40px; }
+  .blog-grid { display: none; }
+
+  .prod-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    border: 1px solid var(--color-border-subtle);
+    margin-top: 36px;
+  }
+  .prod-table th, .prod-table td {
+    text-align: left;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border-subtle);
+    vertical-align: top;
+  }
+  .prod-table th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-secondary);
+    background: #F7F8F4;
+  }
+  .prod-table td { font-size: 14px; line-height: 1.5; }
+  .prod-table tr:last-child td { border-bottom: 0; }
+  .prod-table .have { color: var(--color-accent); font-weight: 600; font-size: 13px; }
+  .prod-note { margin-top: 16px; font-size: 13px; color: var(--color-text-secondary); max-width: 72ch; }
   .blog-card { background: white; border-radius: var(--radius-card); overflow: hidden; border: 1px solid var(--color-border-subtle); }
   .blog-thumb { aspect-ratio: 16/10; background: var(--color-accent-soft); }
   .blog-content { padding: 20px; }
@@ -372,6 +399,7 @@
     .testimonial-cards { grid-template-columns: 1fr; }
     .testimonial-strip { min-height: 100px; }
     .blog-grid { grid-template-columns: 1fr; }
+    .prod-table { display: block; overflow-x: auto; }
     .footer { grid-template-columns: 1fr 1fr; }
     .mockup-panes { grid-template-columns: 1fr; }
     .showcase-captions { grid-template-columns: 1fr; }
@@ -399,7 +427,7 @@
   <div class="nav-links">
     <a href="#features">Platform</a>
     <a href="#solutions">How it works</a>
-    <a href="/demo">Live Demo</a>
+    <a href="#production">Production</a>
     <a href="/v1">Original</a>
   </div>
   <div class="nav-wordmark">CITERAG</div>
@@ -746,35 +774,58 @@
   </div>
 </section>
 
-<!-- Blog -->
-<section class="section" style="padding-top:0;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-    <h2 class="section-h2" style="font-size:40px;">Modules in<br><span class="accent">the repo.</span></h2>
-    <a href="https://github.com/anilandcode/rag-citation-tool" class="btn btn-outline">Source</a>
-  </div>
-  <div class="blog-grid">
-    <div class="blog-card">
-      <div class="blog-thumb" style="background:#E8EDE2;"></div>
-      <div class="blog-content">
-        <div class="blog-meta"><span>src/ingestion</span></div>
-        <h4>SemanticSplitter + source/page/section metadata</h4>
-      </div>
-    </div>
-    <div class="blog-card">
-      <div class="blog-thumb" style="background:#E2EAE5;"></div>
-      <div class="blog-content">
-        <div class="blog-meta"><span>src/retrieval</span></div>
-        <h4>Vector + BM25 + reciprocal rank fusion</h4>
-      </div>
-    </div>
-    <div class="blog-card">
-      <div class="blog-thumb" style="background:#E5E2E8;"></div>
-      <div class="blog-content">
-        <div class="blog-meta"><span>src/generation</span></div>
-        <h4>Cite, verify the claim, refuse if silent</h4>
-      </div>
-    </div>
-  </div>
+<!-- Production baseline -->
+<section class="section" id="production" style="background:white;">
+  <div class="section-label">2026 production baseline</div>
+  <h2 class="section-h2">What production RAG requires.<br><span class="accent">What this repo ships.</span></h2>
+  <p class="section-body" style="margin-top:16px;">Prototype RAG is embed-and-chat. Production RAG is hybrid retrieve, rerank, cite, measure, and trace. CiteRAG implements that stack in code, not a slide.</p>
+  <table class="prod-table">
+    <thead>
+      <tr>
+        <th>Industry baseline</th>
+        <th>In CiteRAG</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Semantic chunking with source metadata, not fixed-size splits</td>
+        <td>SemanticSplitterNodeParser. source, page, section, doc_type, indexed_at</td>
+        <td class="have">src/ingestion</td>
+      </tr>
+      <tr>
+        <td>Hybrid search: dense vector + BM25, fused with reciprocal rank</td>
+        <td>VectorIndexRetriever + BM25Retriever + QueryFusionRetriever mode reciprocal_rerank</td>
+        <td class="have">src/retrieval</td>
+      </tr>
+      <tr>
+        <td>Cross-encoder rerank on the fused candidate set</td>
+        <td>CohereRerank when COHERE_API_KEY is set. Hybrid still runs without it.</td>
+        <td class="have">optional</td>
+      </tr>
+      <tr>
+        <td>Answers must cite sources. Claims must be grounded.</td>
+        <td>Prompt forces [Source: file, Page X]. A judge checks the claim against the chunk. Silent docs refuse.</td>
+        <td class="have">src/generation</td>
+      </tr>
+      <tr>
+        <td>RAGAS metrics plus a CI-style gate, not a vibe check</td>
+        <td>faithfulness, answer relevancy, context precision, context recall. DeepEval harness. audit-report.</td>
+        <td class="have">src/evaluation</td>
+      </tr>
+      <tr>
+        <td>Full query traces so you can see which chunk drove the answer</td>
+        <td>Langfuse traces. Structured module logs.</td>
+        <td class="have">src/utils</td>
+      </tr>
+      <tr>
+        <td>HTTP API, auth split, persistence option</td>
+        <td>FastAPI: health, seed, query, ingest, evaluate. Demo key vs API key. In-memory or Pinecone.</td>
+        <td class="have">src/api</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="prod-note">Baseline drawn from 2026 RAG architecture writeups (hybrid + RRF + rerank as the default, RAGAS for groundedness, traces for ops). CiteRAG does not publish a live faithfulness KPI on this page. Hosted Render can be cold. Pinecone and Cohere are optional env keys, not always-on hosted services.</p>
 </section>
 
 <!-- Final CTA -->
@@ -806,7 +857,7 @@
   </div>
   <div>
     <h5>Resources</h5>
-    <a href="#">Sample Report</a><a href="#">Benchmarks</a><a href="#">Blog</a><a href="#">Docs</a><a href="#">Status</a>
+    <a href="#production">Production baseline</a><a href="/demo">Demo</a><a href="https://github.com/anilandcode/rag-citation-tool">Repo</a>
   </div>
   <div>
     <h5>Company</h5>
