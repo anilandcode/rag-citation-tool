@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-08-22T12:00:00+00:00",
+  "git_sha": "c0ec581",
+  "phase": "0-1-bootstrap",
+  "note": "Scaffold pack after shipping golden set + run_full_eval.py. Full LLM/RAGAS numbers require local OPENAI_API_KEY + python scripts/run_full_eval.py.",
+  "corpus": "data/demo",
+  "golden": "tests/eval_datasets/demo_corpus_golden.json",
+  "n_golden_questions": 17,
+  "n_refusal_items": 3,
+  "llm_model": null,
+  "cohere_rerank": false,
+  "pinecone": false,
+  "hosted_api": {
+    "url": "https://citerag-api.onrender.com/health",
+    "http_status": 404,
+    "body_preview": "Not Found",
+    "implication": "Public /api rewrite is broken until Render service is restored. Use bash scripts/demo_local.sh for interviews."
+  },
+  "frontend": {
+    "landing": "https://rag-citation-tool.vercel.app/",
+    "demo": "https://rag-citation-tool.vercel.app/demo",
+    "demo_http_status": 200
+  },
+  "local": {
+    "venv_present": false,
+    "env_file_present": false,
+    "command": "cp .env.example .env && set OPENAI_API_KEY && bash scripts/demo_local.sh"
+  },
+  "artifacts_shipped": [
+    "tests/eval_datasets/demo_corpus_golden.json",
+    "scripts/run_full_eval.py",
+    "scripts/demo_local.sh",
+    "docs/JOB_DEMO.md",
+    "docs/demo-checklist.md",
+    "tests/unit/test_refusal_and_golden.py"
+  ]
+}

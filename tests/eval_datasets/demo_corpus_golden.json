@@ -1,0 +1,138 @@
+[
+  {
+    "id": "refund-annual",
+    "question": "What is the refund policy for annual subscriptions?",
+    "ground_truth": "Annual subscriptions can be refunded within 30 days of the initial purchase date. After 30 days, no refunds are available for the remaining months.",
+    "expected_sources": ["refund-policy.md"],
+    "expect_refusal": false,
+    "category": "factual"
+  },
+  {
+    "id": "refund-monthly",
+    "question": "Are monthly plans refundable?",
+    "ground_truth": "Monthly plans are non-refundable. You may cancel at any time; access continues until the end of the current billing period.",
+    "expected_sources": ["refund-policy.md"],
+    "expect_refusal": false,
+    "category": "factual"
+  },
+  {
+    "id": "refund-process-time",
+    "question": "How long do refunds take to process to the original payment method?",
+    "ground_truth": "Refunds are processed to the original payment method within 5–10 business days.",
+    "expected_sources": ["refund-policy.md"],
+    "expect_refusal": false,
+    "category": "factual"
+  },
+  {
+    "id": "refund-request-contact",
+    "question": "How do I request a refund and what email should I use?",
+    "ground_truth": "Contact billing@citerag.com or use the Billing tab in the account dashboard. Include your invoice ID. Requests are processed within 2 business days.",
+    "expected_sources": ["refund-policy.md"],
+    "expect_refusal": false,
+    "category": "keyword"
+  },
+  {
+    "id": "refund-enterprise",
+    "question": "Do enterprise agreements follow the same 30-day refund policy?",
+    "ground_truth": "Custom enterprise agreements have their own refund terms negotiated at contract signing. Refer to the master services agreement.",
+    "expected_sources": ["refund-policy.md"],
+    "expect_refusal": false,
+    "category": "factual"
+  },
+  {
+    "id": "terms-ownership",
+    "question": "Who owns the documents I upload to CiteRAG?",
+    "ground_truth": "You retain full ownership and IP rights over all uploaded content. Documents are not used to train external AI models.",
+    "expected_sources": ["terms-2026.md"],
+    "expect_refusal": false,
+    "category": "factual"
+  },
+  {
+    "id": "terms-age",
+    "question": "What is the minimum age to create a CiteRAG account?",
+    "ground_truth": "You must be at least 18 years old to create an account.",
+    "expected_sources": ["terms-2026.md"],
+    "expect_refusal": false,
+    "category": "factual"
+  },
+  {
+    "id": "terms-uptime",
+    "question": "What uptime does CiteRAG target?",
+    "ground_truth": "CiteRAG targets 99.5% uptime. Scheduled maintenance is announced 48 hours in advance.",
+    "expected_sources": ["terms-2026.md"],
+    "expect_refusal": false,
+    "category": "keyword"
+  },
+  {
+    "id": "terms-updated",
+    "question": "When were the terms of service last updated?",
+    "ground_truth": "The terms were last updated June 15, 2026.",
+    "expected_sources": ["terms-2026.md"],
+    "expect_refusal": false,
+    "category": "factual"
+  },
+  {
+    "id": "terms-liability",
+    "question": "Is CiteRAG liable for answers based on incomplete documents?",
+    "ground_truth": "CiteRAG is not liable for answers that rely on outdated or incomplete documents. Users are responsible for verifying critical answers independently.",
+    "expected_sources": ["terms-2026.md"],
+    "expect_refusal": false,
+    "category": "factual"
+  },
+  {
+    "id": "pricing-starter",
+    "question": "How much does the Starter plan cost and what are its limits?",
+    "ground_truth": "Starter is $49/month — up to 5,000 documents, 500 queries/day, email support.",
+    "expected_sources": ["pricing.md"],
+    "expect_refusal": false,
+    "category": "factual"
+  },
+  {
+    "id": "pricing-pro",
+    "question": "What does the Professional plan include?",
+    "ground_truth": "Professional is $199/month — up to 50,000 documents, 5,000 queries/day, priority support, and custom evaluation datasets.",
+    "expected_sources": ["pricing.md"],
+    "expect_refusal": false,
+    "category": "factual"
+  },
+  {
+    "id": "pricing-trial",
+    "question": "Is there a free trial and do I need a credit card?",
+    "ground_truth": "Free 14-day trial is available on Starter and Professional. No credit card required.",
+    "expected_sources": ["pricing.md"],
+    "expect_refusal": false,
+    "category": "factual"
+  },
+  {
+    "id": "multi-price-refund",
+    "question": "How much does CiteRAG cost and can I get a refund on an annual subscription?",
+    "ground_truth": "Plans start at $49/month (Starter) and $199/month (Professional); Enterprise is custom. Annual subscriptions can be refunded within 30 days of purchase.",
+    "expected_sources": ["pricing.md", "refund-policy.md"],
+    "expect_refusal": false,
+    "category": "multi_source"
+  },
+  {
+    "id": "refuse-phone",
+    "question": "What is the cell phone number of the head of billing?",
+    "ground_truth": "The documents do not contain any personal phone numbers for billing staff.",
+    "expected_sources": [],
+    "expect_refusal": true,
+    "category": "refusal"
+  },
+  {
+    "id": "refuse-password",
+    "question": "How do I reset my password if I forgot it?",
+    "ground_truth": "The demo corpus does not document a password-reset procedure.",
+    "expected_sources": [],
+    "expect_refusal": true,
+    "category": "refusal"
+  },
+  {
+    "id": "refuse-unrelated",
+    "question": "What is the capital of France?",
+    "ground_truth": "Not answered from this corpus; the assistant should refuse rather than invent.",
+    "expected_sources": [],
+    "expect_refusal": true,
+    "category": "refusal"
+  }
+]

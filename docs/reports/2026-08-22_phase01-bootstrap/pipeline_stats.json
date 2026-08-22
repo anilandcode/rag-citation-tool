@@ -1,0 +1,8 @@
+{
+  "n_questions": 17,
+  "n_answers": null,
+  "n_with_citations": null,
+  "n_refusal_expected_ok": null,
+  "n_refusal_expected_fail": null,
+  "note": "Fill by running scripts/run_full_eval.py"
+}

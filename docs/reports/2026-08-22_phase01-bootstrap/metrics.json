@@ -1,0 +1,8 @@
+{
+  "faithfulness": null,
+  "answer_relevancy": null,
+  "context_precision": null,
+  "context_recall": null,
+  "skipped": true,
+  "reason": "No OPENAI_API_KEY / .venv on build machine. Run: python scripts/run_full_eval.py"
+}
