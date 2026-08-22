@@ -1,56 +1,52 @@
-# CiteRAG demo checklist
+# CiteRAG demo checklist — LIVE only
 
-Last updated: 2026-08-22 (Phase 0/1)
+Last updated: 2026-08-22
 
-## Local (reliable interview path)
+**Policy:** All product testing is against **hosted** surfaces. No local Docker / local uvicorn for acceptance.
 
-```bash
-cd rag-citation-tool
-bash scripts/demo_local.sh
-# open http://127.0.0.1:8080/demo
-```
+## Surfaces
 
-Manual:
+| Surface | URL |
+|---------|-----|
+| Landing | https://rag-citation-tool.vercel.app/ |
+| Demo UI | https://rag-citation-tool.vercel.app/demo |
+| App | https://rag-citation-tool.vercel.app/app |
+| API (via Vercel) | https://rag-citation-tool.vercel.app/api/health |
+| API (Render direct) | https://citerag-api.onrender.com/health |
 
-- [ ] `python3 -m venv .venv && source .venv/bin/activate`
-- [ ] `pip install -r requirements-api.txt`
-- [ ] `.env` has real `OPENAI_API_KEY` (not `sk-...`)
-- [ ] `uvicorn src.api.main:app --port 8000`
-- [ ] `curl -s localhost:8000/health | jq .` → prefer `"indexed": true`
-- [ ] If not indexed: `curl -s -X POST localhost:8000/demo/seed -H "X-API-Key: demo-public-key"`
-- [ ] `python3 -m http.server 8080` → open `/demo`
-- [ ] Preset refund question returns citations + verification
-- [ ] Refusal question (billing phone) shows honest refusal
-- [ ] `/app` Settings shows API base; health green
-
-## Full eval + report pack
+## Preflight
 
 ```bash
-source .venv/bin/activate
-pip install -r requirements-eval.txt   # for RAGAS
-python scripts/run_full_eval.py
-# → docs/reports/<timestamp>_demo-corpus/REPORT.md
+bash scripts/smoke_hosted.sh
+python scripts/run_live_eval.py --limit 3   # short wake + 3 questions
+python scripts/run_live_eval.py            # full golden → docs/reports/*_live/
 ```
 
-Cheaper smoke (no RAGAS, no claim verify):
+## Pass criteria (live)
 
-```bash
-python scripts/run_full_eval.py --skip-ragas --skip-verify --limit 5
-```
+- [ ] `GET /health` → 200, `"indexed": true` (after seed or auto-seed)
+- [ ] `POST /demo/seed` → 200 when cold index
+- [ ] Refund question → answer + citations + verification
+- [ ] Refusal question (billing phone) → honest refusal
+- [ ] `docs/reports/<ts>_live/REPORT.md` committed for job pack
+- [ ] Vercel `/demo` loads without console CORS errors
 
-- [ ] `docs/reports/latest.json` points at newest folder
-- [ ] `REPORT.md` metrics not hand-edited
+## If API is 404 / down
 
-## Production (public link)
+Testing **cannot** proceed live until Render is restored:
 
-- [ ] Render `/health` (may cold-start 30–60s)
-- [ ] Vercel rewrite `/api/*` → correct Render host
-- [ ] https://rag-citation-tool.vercel.app/demo
-- [ ] If cold: use local path above; keep screenshots in latest report
+1. `render login`
+2. Deploy blueprint (`render.yaml`) or Docker web service from this repo
+3. Set `OPENAI_API_KEY` (and optional `COHERE_API_KEY`) in Render dashboard
+4. `curl -sS https://<service>.onrender.com/health`
+5. Align `vercel.json` rewrite host if URL changed
+6. Re-run `python scripts/run_live_eval.py`
 
-## Interview T-10 SOP
+Do **not** fall back to local Docker for “official” test reports.
 
-1. Start `bash scripts/demo_local.sh` **or** wake Render health
-2. Run refund + refusal once
-3. Open `docs/reports/latest` REPORT.md as backup
-4. Screen-share `/demo` then report metrics
+## Interview SOP (live)
+
+1. T-10: `curl` health (wake cold start)
+2. Open https://rag-citation-tool.vercel.app/demo
+3. Refund + refusal
+4. Show latest `docs/reports/*_live/REPORT.md`

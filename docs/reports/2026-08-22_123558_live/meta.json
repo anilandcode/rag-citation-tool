@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-08-22T12:35:59.727489+00:00",
+  "git_sha": "c0ec581",
+  "mode": "live",
+  "base": "https://rag-citation-tool.vercel.app/api",
+  "status": "api_unreachable",
+  "health_http": 404,
+  "health": "Not Found\n",
+  "duration_sec": 0.88,
+  "fix": "Hosted API did not return 200 /health. Redeploy Render (render.yaml name citerag-api), set OPENAI_API_KEY, confirm public URL, update vercel.json rewrite if hostname changed."
+}

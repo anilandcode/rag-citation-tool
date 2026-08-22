@@ -157,10 +157,12 @@ OPENAI_API_KEY=sk-test python3 -c "import src.api.main; print('import ok')"
 ## Job demo + measured reports
 
 - One-pager: [`docs/JOB_DEMO.md`](docs/JOB_DEMO.md)
-- Local demo: `bash scripts/demo_local.sh` → http://127.0.0.1:8080/demo
-- Full eval pack: `python scripts/run_full_eval.py` → `docs/reports/<timestamp>_demo-corpus/`
+- **Live eval (canonical):** `python scripts/run_live_eval.py` → `docs/reports/<timestamp>_live/`
+- Hosted smoke: `bash scripts/smoke_hosted.sh`
 - Golden set: `tests/eval_datasets/demo_corpus_golden.json` (aligned to `data/demo/`)
 - Checklist: [`docs/demo-checklist.md`](docs/demo-checklist.md)
+
+Testing policy: **live hosted API only** for acceptance/job packs (no local Docker).
 
 ---
 
@@ -180,6 +182,6 @@ OPENAI_API_KEY=sk-test python3 -c "import src.api.main; print('import ok')"
 python -m src.cli ingest --input-dir ./data/demo
 python -m src.cli query "What is the refund policy?" --input-dir ./data/demo
 python -m src.cli eval tests/eval_datasets/demo_corpus_golden.json --input-dir ./data/demo
-# Prefer for job packs:
-python scripts/run_full_eval.py
+# Prefer live pack for job demos:
+python scripts/run_live_eval.py
 ```

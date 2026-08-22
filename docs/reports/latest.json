@@ -1,1 +1,6 @@
-{"latest":"2026-08-22_phase01-bootstrap","path":"docs/reports/2026-08-22_phase01-bootstrap","timestamp":"2026-08-22T12:00:00+00:00","git_sha":"c0ec581","note":"Bootstrap only — run scripts/run_full_eval.py for real metrics"}
+{
+  "latest": "2026-08-22_123558_live",
+  "path": "docs/reports/2026-08-22_123558_live",
+  "timestamp": "2026-08-22T12:35:59.727489+00:00",
+  "status": "api_unreachable"
+}

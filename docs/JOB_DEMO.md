@@ -10,24 +10,21 @@ Citation-grounded RAG stack: ingest â†’ hybrid retrieve (vector + BM25 + RRF) â†
 
 Not a chat wrapper. Not multi-tenant SaaS billing. A **working production path** you can demo and hire for audits/custom installs.
 
-## Reproduce in ~10 minutes
+## Reproduce in ~10 minutes (live)
 
 ```bash
-git clone https://github.com/anilandcode/rag-citation-tool.git
-cd rag-citation-tool
-cp .env.example .env   # set OPENAI_API_KEY
-bash scripts/demo_local.sh
-# open http://127.0.0.1:8080/demo
+# 1) API must be healthy on Render
+curl -sS https://rag-citation-tool.vercel.app/api/health
+
+# 2) Open demo
+open https://rag-citation-tool.vercel.app/demo
+
+# 3) Measured live pack
+python scripts/run_live_eval.py
+# open docs/reports/<latest>_live/REPORT.md
 ```
 
-Measured pack:
-
-```bash
-source .venv/bin/activate
-pip install -r requirements-eval.txt
-python scripts/run_full_eval.py
-# open docs/reports/<latest>/REPORT.md
-```
+If `/health` is 404, restore Render first (see Hosted API note). Do not use local Docker for job evidence.
 
 ## Architecture (modules)
 
@@ -52,18 +49,24 @@ python scripts/run_full_eval.py
 
 ## Latest report
 
-See [`docs/reports/latest.json`](./reports/latest.json). Bootstrap pack documents hosted API status; **measured RAGAS** needs:
+See [`docs/reports/latest.json`](./reports/latest.json). Measured packs are `*_live` from:
 
 ```bash
-cp .env.example .env   # set OPENAI_API_KEY
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements-eval.txt
-python scripts/run_full_eval.py
+python scripts/run_live_eval.py
 ```
 
 ## Hosted API note (2026-08-22)
 
-`citerag-api.onrender.com/health` returned **404**. Until Render is restored, demos use **local** `bash scripts/demo_local.sh`. Frontend on Vercel remains up.
+`citerag-api.onrender.com/health` returned **404**. Live testing is blocked until Render is redeployed with `OPENAI_API_KEY`. Frontend on Vercel stays up; `/demo` cannot query until API is back.
+
+Restore:
+
+1. `render login`
+2. Deploy this repo (blueprint `render.yaml` or Docker)
+3. Set secrets on the service
+4. Confirm health JSON
+5. Fix `vercel.json` rewrite if the hostname changed
+6. `python scripts/run_live_eval.py`
 
 ## Honest limits
 

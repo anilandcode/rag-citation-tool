@@ -1,0 +1,37 @@
+# Live smoke against hosted CiteRAG (no local Docker).
+name: live-smoke
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 12 * * 1"  # weekly Monday 12:00 UTC
+  push:
+    branches: [main]
+    paths:
+      - "scripts/run_live_eval.py"
+      - "scripts/smoke_hosted.sh"
+      - "vercel.json"
+      - "render.yaml"
+      - ".github/workflows/live-smoke.yml"
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Hosted HTTP smoke
+        run: bash scripts/smoke_hosted.sh
+      - name: Live eval (short)
+        run: python scripts/run_live_eval.py --wake-seconds 90 --limit 3
+        continue-on-error: true
+      - name: Upload report pack
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-report
+          path: docs/reports/*_live/
+          if-no-files-found: ignore
