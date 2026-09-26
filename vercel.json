@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://citerag-api.onrender.com/$1"
+      "destination": "https://artsineed--citerag-api-api.modal.run/$1"
     },
     { "source": "/demo", "destination": "/demo.html" },
     { "source": "/app", "destination": "/app.html" },

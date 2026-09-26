@@ -2,7 +2,7 @@
 # Static + rewrite smoke (no secrets). From repo root: bash scripts/smoke_hosted.sh
 set -euo pipefail
 LANDING="${LANDING:-https://rag-citation-tool.vercel.app}"
-API="${API:-https://citerag-api.onrender.com}"
+API="${API:-https://artsineed--citerag-api-api.modal.run}"
 
 echo "== frontend =="
 for path in / /demo /app /v1; do

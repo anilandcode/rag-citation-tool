@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     )
 
     openai_api_key: str = ""
+    # Optional OpenAI-compatible gateway (e.g. https://openrouter.ai/api/v1)
+    openai_base_url: str = ""
     cohere_api_key: str = ""
     pinecone_api_key: str = ""
     pinecone_index_name: str = "rag-citation"

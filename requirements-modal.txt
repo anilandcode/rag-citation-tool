@@ -1,0 +1,19 @@
+# Modal/runtime lean set.
+# NOTE: we do NOT install the `llama-index` meta-package, `llama-index-llms-openai`,
+# or `llama-index-embeddings-openai`. Those pinned releases import
+# openai.types.responses.ResponseTextAnnotationDeltaEvent, removed from current
+# `openai` SDKs -> every combo breaks. src/config/models.py talks to any
+# OpenAI-compatible gateway over raw httpx instead.
+# Cohere/Pinecone stay optional at runtime (ALLOW_NO_RERANK=true).
+fastapi==0.115.11
+uvicorn[standard]==0.34.0
+python-multipart==0.0.19
+python-dotenv==1.0.1
+pydantic==2.10.6
+pydantic-settings==2.7.1
+
+llama-index-core==0.12.27
+llama-index-retrievers-bm25==0.5.2
+llama-index-readers-file==0.4.11
+
+httpx==0.28.1

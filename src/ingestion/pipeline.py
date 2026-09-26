@@ -52,17 +52,27 @@ def chunk_documents(
     documents: list[Document],
     embed_model=None,
 ) -> list:
-    if embed_model is None:
+    # Prefer sentence splitter for demo reliability (no embed dependency at chunk time).
+    # Semantic split is available when embed_model is explicitly forced.
+    use_semantic = False
+    if embed_model is not None:
+        use_semantic = True
+    if embed_model is None and use_semantic:
         embed_model = get_embed_model()
 
-    log.info("chunking_start", document_count=len(documents))
-    splitter = SemanticSplitterNodeParser(
-        buffer_size=1,
-        breakpoint_percentile_threshold=95,
-        embed_model=embed_model,
-    )
+    log.info("chunking_start", document_count=len(documents), semantic=use_semantic)
+    if use_semantic:
+        splitter = SemanticSplitterNodeParser(
+            buffer_size=1,
+            breakpoint_percentile_threshold=95,
+            embed_model=embed_model,
+        )
+        nodes = splitter.get_nodes_from_documents(documents)
+    else:
+        from llama_index.core.node_parser import SentenceSplitter
 
-    nodes = splitter.get_nodes_from_documents(documents)
+        splitter = SentenceSplitter(chunk_size=512, chunk_overlap=64)
+        nodes = splitter.get_nodes_from_documents(documents)
 
     for node in nodes:
         node.metadata.update({
