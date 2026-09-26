@@ -34,6 +34,12 @@ image = (
             "EMBED_PROVIDER": "local",
             "EMBED_LOCAL_MODEL": "BAAI/bge-small-en-v1.5",
             "OPENAI_BASE_URL": "https://api.commandcode.ai/provider/v1",
+            # Decision layer (Jev) runs on a DIFFERENT gateway than the LLM:
+            # Command Code has no decision model, OpenRouter exposes
+            # typesafe/jev-1.13. JEV_API_KEY comes from the secret.
+            "JEV_ENABLED": "true",
+            "JEV_MODEL": "typesafe/jev-1.13-20260917",
+            "JEV_BASE_URL": "https://openrouter.ai/api/v1",
             "PYTHONPATH": "/root",
         }
     )

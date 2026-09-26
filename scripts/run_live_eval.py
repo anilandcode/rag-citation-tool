@@ -260,6 +260,7 @@ Frontend-only smoke (no API): `bash scripts/smoke_hosted.sh`
             answer = ""
             citations = []
             verification = None
+            gate = None
             err = None
             if code != 200:
                 err = payload
@@ -267,6 +268,7 @@ Frontend-only smoke (no API): `bash scripts/smoke_hosted.sh`
                 answer = payload.get("answer") or ""
                 citations = payload.get("citations") or []
                 verification = payload.get("verification")
+                gate = payload.get("gate")
                 n_ok += 1
             else:
                 err = payload
@@ -289,6 +291,7 @@ Frontend-only smoke (no API): `bash scripts/smoke_hosted.sh`
                 "answer": answer,
                 "citations": citations,
                 "verification": verification,
+                "gate": gate,
                 "is_refusal": is_refusal,
                 "error": err,
                 "category": item.get("category"),

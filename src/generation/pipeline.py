@@ -42,6 +42,10 @@ class CitationVerification:
     citation: Citation
     supported: bool
     source_text: str = ""
+    # Calibrated probability from the decision model (Jev); None on the LLM or
+    # heuristic fallback paths. Surfaced in the API so consumers can apply
+    # their own threshold instead of trusting a bare bool.
+    confidence: float | None = None
 
 
 @dataclass
@@ -51,6 +55,14 @@ class CitationVerificationReport:
     accuracy: float
     is_refusal: bool = False
     details: list[CitationVerification] = field(default_factory=list)
+    # Which engine produced this verdict: "jev" (System One, batched typed
+    # decisions), "llm" (frontier model per claim) or "heuristic".
+    engine: str = "llm"
+    decision_cost: float | None = None
+    decision_id: str = ""
+    decision_route: str = ""
+    # Lowest per-claim confidence seen; None when no probabilities available.
+    min_confidence: float | None = None
 
 
 def build_query_engine(retriever, node_postprocessors=None, llm=None):
@@ -152,12 +164,109 @@ def _leaf_text(response) -> str:
     return str(response)
 
 
+def _verify_with_jev(
+    citations: list[Citation], source_nodes
+) -> CitationVerificationReport | None:
+    """Batch every citation-support check into ONE Jev call.
+
+    Returns None when Jev is unavailable/failed so the caller falls back to the
+    per-citation LLM path. This is the System One half of the split: a typed
+    yes/no with calibrated confidence, at ~1e-5 USD instead of a reasoning-model
+    "reply yes or no" call per claim.
+    """
+    from src.config.settings import settings
+    from src.decisions import jev
+
+    if not (settings.jev_enabled and settings.jev_verify_citations):
+        return None
+    if not jev.available():
+        return None
+
+    # Resolve each citation to its source text FIRST (deterministic work).
+    resolved: list[tuple[Citation, str]] = []
+    questions: dict[str, dict] = {}
+    for i, citation in enumerate(citations):
+        node = find_node_by_metadata(source_nodes, citation.source)
+        source_text = node.text[:2000] if node else ""
+        resolved.append((citation, node.text[:500] if node else ""))
+        if not source_text:
+            # Unresolvable source -> cannot be supported; skip the paid question.
+            continue
+        qid = "c" + str(i)
+        questions[qid] = jev.noul(
+            qid,
+            "Proposition: the claim is fully supported by the source passage. "
+            "A claim counts as supported only if the passage states it, or it "
+            "follows directly with no extra assumptions. Claim: "
+            + repr(citation.claim or citation.source)
+            + " Source passage ("
+            + citation.source
+            + "): "
+            + source_text,
+        )
+
+    if not questions:
+        # Nothing Jev can judge (all sources missing) -> let caller decide.
+        return None
+
+    result = jev.ask(
+        {"citations_under_review": len(questions)},
+        questions,
+        threshold=settings.jev_support_threshold,
+    )
+    if not result.ok:
+        log.warning("jev_verify_unavailable", error=result.error)
+        return None
+
+    details: list[CitationVerification] = []
+    verified_count = 0
+    for i, (citation, snippet) in enumerate(resolved):
+        prob = result.get_probability("c" + str(i))
+        if prob is None:
+            # Source was missing -> unsupported.
+            is_supported = False
+        else:
+            is_supported = prob >= settings.jev_support_threshold
+        if is_supported:
+            verified_count += 1
+        details.append(
+            CitationVerification(
+                citation=citation,
+                supported=is_supported,
+                source_text=snippet,
+                confidence=prob,
+            )
+        )
+
+    total = len(citations)
+    confidences = [d.confidence for d in details if d.confidence is not None]
+    accuracy = verified_count / total if total > 0 else 0.0
+    log.info(
+        "verification_complete",
+        engine="jev",
+        total_citations=total,
+        verified=verified_count,
+        accuracy=accuracy,
+        min_confidence=min(confidences) if confidences else None,
+        cost=result.usage.get("cost"),
+        model=result.model,
+    )
+    return CitationVerificationReport(
+        total_citations=total,
+        verified=verified_count,
+        accuracy=accuracy,
+        details=details,
+        engine="jev",
+        decision_cost=result.usage.get("cost"),
+        decision_id=result.request_id,
+        decision_route=result.route,
+        min_confidence=min(confidences) if confidences else None,
+    )
+
+
 def verify_citations(
     response_text: str, source_nodes, llm=None
 ) -> CitationVerificationReport:
-    if llm is None:
-        llm = get_llm()
-
     citations = extract_citations(response_text)
     log.info("verification_start", citation_count=len(citations))
     if not citations:
@@ -172,7 +281,18 @@ def verify_citations(
             accuracy=1.0 if is_refusal else 0.0,
             is_refusal=is_refusal,
             details=[],
+            # No engine judged anything: there were no claims to check.
+            engine="none",
         )
+
+    # System One first: one batched Jev call covers every citation.
+    jev_report = _verify_with_jev(citations, source_nodes)
+    if jev_report is not None:
+        return jev_report
+
+    # Fallback: per-citation LLM judgement, then deterministic heuristics.
+    if llm is None:
+        llm = get_llm()
 
     details = []
     verified_count = 0
@@ -236,6 +356,7 @@ def verify_citations(
     total = len(citations)
     log.info(
         "verification_complete",
+        engine="llm",
         total_citations=total,
         verified=verified_count,
         accuracy=verified_count / total if total > 0 else 0.0,
@@ -245,6 +366,7 @@ def verify_citations(
         verified=verified_count,
         accuracy=verified_count / total if total > 0 else 0.0,
         details=details,
+        engine="llm",
     )
 
 

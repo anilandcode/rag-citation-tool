@@ -216,15 +216,47 @@ async def query(
         )
 
     def _run_query():
+        gate = None
+        # System One gate: retrieve, then let Jev decide answerability/route
+        # before paying for frontier-model generation. Fail-open on any error.
+        try:
+            from src.decisions import gate_query
+
+            retriever = state.get_hybrid_retriever()
+            passages = []
+            if retriever is not None:
+                for n in retriever.retrieve(request.question)[:6]:
+                    passages.append(
+                        {
+                            "source": (n.node.metadata or {}).get("source", "unknown"),
+                            "text": n.node.get_content()[:1200],
+                            "score": getattr(n, "score", None),
+                        }
+                    )
+            gate = gate_query(request.question, passages)
+            if gate is not None and gate.should_short_circuit:
+                log.info(
+                    "generation_skipped_by_gate",
+                    answerable=gate.answerable_prob,
+                    cost=gate.cost,
+                )
+                refusal = "I don't have enough information to answer this."
+                verification_dc = verify_citations(refusal, [])
+                verification_dc.is_refusal = True
+                return refusal, [], [], verification_dc, gate
+        except Exception as exc:  # noqa: BLE001 - gate must never break query
+            log.warning("query_gate_failed", error=str(exc)[:200])
+            gate = None
+
         response = qe.query(request.question)
         source_nodes = response.source_nodes
         text = str(response)
         citations = extract_citations(text)
         verification_dc = verify_citations(text, source_nodes)
-        return text, source_nodes, citations, verification_dc
+        return text, source_nodes, citations, verification_dc, gate
 
     try:
-        text, source_nodes, citations, verification_dc = await run_in_threadpool(
+        text, source_nodes, citations, verification_dc, gate = await run_in_threadpool(
             _run_query
         )
     except Exception as exc:
@@ -277,9 +309,15 @@ async def query(
                     ),
                     supported=vd.supported,
                     source_text=vd.source_text,
+                    confidence=vd.confidence,
                 )
                 for vd in verification_dc.details
             ],
+            engine=verification_dc.engine,
+            decision_cost=verification_dc.decision_cost,
+            decision_id=verification_dc.decision_id,
+            decision_route=verification_dc.decision_route,
+            min_confidence=verification_dc.min_confidence,
         ),
         evaluation={
             "citation_accuracy": verification_dc.accuracy,
@@ -287,7 +325,9 @@ async def query(
             "citations_verified": verification_dc.verified,
             "is_refusal": verification_dc.is_refusal,
             "sources_retrieved": len(source_nodes),
+            "verification_engine": verification_dc.engine,
         },
+        gate=gate.as_dict() if gate is not None else None,
     )
 
 

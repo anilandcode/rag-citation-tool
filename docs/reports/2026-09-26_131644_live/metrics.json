@@ -1,0 +1,11 @@
+{
+  "mode": "live_api",
+  "mean_verify_accuracy": 1.0,
+  "verify_n": 17,
+  "ragas": {
+    "skipped": true,
+    "reason": "RAGAS runs on API via POST /evaluate when requirements-eval installed on host + API_KEY. This live pack uses /query verification."
+  },
+  "pass_rate_http": 1.0,
+  "refusal_recall": 1.0
+}
