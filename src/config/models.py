@@ -19,6 +19,12 @@ def _headers() -> dict:
     h = {
         "Authorization": f"Bearer {settings.openai_api_key}",
         "Content-Type": "application/json",
+        # Some gateways (e.g. api.commandcode.ai behind Cloudflare) reject
+        # default python HTTP user agents with 403/1010 — send a browser UA.
+        "User-Agent": (
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+        ),
     }
     base = settings.openai_base_url or ""
     if "openrouter.ai" in base:
@@ -31,25 +37,28 @@ def _chat_http(
     model: str,
     messages: Sequence[dict],
     temperature: float = 0.1,
-    max_tokens: int = 1024,
+    max_tokens: int | None = None,
 ) -> str:
     """POST /chat/completions with retries.
 
-    Reasoning models (e.g. nvidia nemotron) can burn the whole token budget on
-    hidden reasoning and return empty content — detect that and retry with a
-    larger budget before giving up.
+    Reasoning models (muse-spark, nemotron) can burn the whole token budget on
+    hidden reasoning and return empty content — start from a generous budget
+    (settings.llm_max_tokens) and escalate further on empty replies.
     """
     import httpx
+
+    resolved = max_tokens if max_tokens is not None else getattr(settings, "llm_max_tokens", 4096)
+    base_budget = int(resolved)
 
     payload = {
         "model": model,
         "messages": list(messages),
         "temperature": temperature,
-        "max_tokens": max_tokens,
+        "max_tokens": base_budget,
     }
     last_err = "no attempt ran"
-    budgets = [max_tokens, max_tokens * 2, max_tokens * 4]
-    for attempt, budget in enumerate(budgets + [max_tokens * 4] * 3):
+    budgets = [base_budget, base_budget * 2, base_budget * 4]
+    for attempt, budget in enumerate(budgets + [base_budget * 4] * 3):
         payload["max_tokens"] = budget
         try:
             with httpx.Client(timeout=240.0) as client:
@@ -196,10 +205,50 @@ def configure_llama_index_defaults() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Embeddings over raw HTTP
+# Embeddings: local fastembed (default for demo) OR raw HTTP gateway
 # --------------------------------------------------------------------------- #
+_fastembed_model = None
+
+
+def _get_fastembed():
+    """Process-wide fastembed singleton (ONNX, in-memory, no network)."""
+    global _fastembed_model
+    if _fastembed_model is None:
+        from fastembed import TextEmbedding
+
+        _fastembed_model = TextEmbedding(
+            model_name=settings.embed_local_model or "BAAI/bge-small-en-v1.5",
+            cache_dir="/tmp/fecache",
+        )
+    return _fastembed_model
+
+
 def get_embed_model():
     from llama_index.core.embeddings import BaseEmbedding
+
+    provider = (settings.embed_provider or "http").strip().lower()
+
+    if provider == "local":
+
+        class LocalFastEmbedEmbedding(BaseEmbedding):
+            model_name: str = settings.embed_local_model or "BAAI/bge-small-en-v1.5"
+
+            def _get_query_embedding(self, query: str) -> List[float]:
+                return [float(x) for x in next(iter(_get_fastembed().query_embed([query])))]
+
+            def _get_text_embedding(self, text: str) -> List[float]:
+                return [float(x) for x in next(iter(_get_fastembed().embed([text])))]
+
+            def _get_text_embeddings(self, texts: List[str]) -> List[List[float]]:
+                return [[float(x) for x in v] for v in _get_fastembed().embed(texts)]
+
+            async def _aget_query_embedding(self, query: str) -> List[float]:
+                return self._get_query_embedding(query)
+
+            async def _aget_text_embedding(self, text: str) -> List[float]:
+                return self._get_text_embedding(text)
+
+        return LocalFastEmbedEmbedding()
 
     model = settings.embedding_model or "text-embedding-3-small"
 

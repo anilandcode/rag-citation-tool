@@ -26,10 +26,14 @@ image = (
                 "http://localhost:8080,"
                 "http://127.0.0.1:8080"
             ),
-            "LLM_MODEL": "nvidia/nemotron-3-ultra-550b-a55b:free",
-            "LLM_EVAL_MODEL": "nvidia/nemotron-3-ultra-550b-a55b:free",
-            "EMBEDDING_MODEL": "liquid/lfm-2.5-embedding-350m:free",
-            "OPENAI_BASE_URL": "https://openrouter.ai/api/v1",
+            "LLM_MODEL": "meta/muse-spark-1.3-contributor",
+            "LLM_EVAL_MODEL": "meta/muse-spark-1.3-contributor",
+            # Reasoning model: hidden reasoning burns budget before content.
+            "LLM_MAX_TOKENS": "4096",
+            # Local ONNX embeddings in-container: no gateway, no 429 rate limits.
+            "EMBED_PROVIDER": "local",
+            "EMBED_LOCAL_MODEL": "BAAI/bge-small-en-v1.5",
+            "OPENAI_BASE_URL": "https://api.commandcode.ai/provider/v1",
             "PYTHONPATH": "/root",
         }
     )

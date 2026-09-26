@@ -21,7 +21,14 @@ class Settings(BaseSettings):
 
     llm_model: str = "gpt-4o-mini"
     llm_eval_model: str = "gpt-4o-mini"
+    # Reasoning models (muse-spark, nemotron) burn budget on hidden reasoning
+    # before emitting content — keep this generous or replies come back empty.
+    llm_max_tokens: int = 4096
     embedding_model: str = "text-embedding-3-small"
+    # Embedding provider: "http" (OpenAI-compatible gateway) or "local"
+    # (fastembed ONNX in-process — no network, no rate limits, deterministic).
+    embed_provider: str = "http"
+    embed_local_model: str = "BAAI/bge-small-en-v1.5"
     rerank_model: str = "rerank-english-v3.0"
 
     rerank_top_n: int = 5

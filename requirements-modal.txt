@@ -16,4 +16,7 @@ llama-index-core==0.12.27
 llama-index-retrievers-bm25==0.5.2
 llama-index-readers-file==0.4.11
 
+# Local ONNX embeddings (default EMBED_PROVIDER=local): no network, no rate limits
+fastembed==0.4.1
+
 httpx==0.28.1
