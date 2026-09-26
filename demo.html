@@ -339,6 +339,45 @@
   .verify-source { font-weight: 600; }
   .verify-claim { color: var(--color-text-secondary); font-size: 12px; line-height: 1.4; margin-top: 2px; }
 
+  /* Per-claim calibrated confidence from the decision model */
+  .conf-wrap { display: flex; align-items: center; gap: 7px; margin-top: 5px; }
+  .conf-bar {
+    flex: 1; height: 4px; border-radius: 2px; overflow: hidden;
+    background: rgba(26,28,23,0.10); max-width: 110px;
+  }
+  .conf-fill { height: 100%; border-radius: 2px; background: var(--color-verified); }
+  .verify-row.fail .conf-fill { background: var(--color-unsupported); }
+  .conf-num { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--color-text-secondary); }
+
+  /* Decision layer (System One) panel */
+  .decide-box {
+    margin-top: 16px; padding: 14px;
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-ui); background: #F7F8F4;
+  }
+  .decide-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--color-text-secondary); font-weight: 600; margin-bottom: 10px;
+  }
+  .decide-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 12px; font-size: 12px; padding: 4px 0;
+  }
+  .decide-row + .decide-row { border-top: 1px solid var(--color-border-subtle); }
+  .decide-k { color: var(--color-text-secondary); }
+  .decide-v { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+  .engine-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .engine-badge.jev { background: rgba(74,122,53,0.14); color: var(--color-verified); }
+  .engine-badge.llm { background: rgba(122,139,139,0.18); color: var(--color-card-slate); }
+  .engine-badge.none { background: rgba(26,28,23,0.07); color: var(--color-text-secondary); }
+  .decide-note {
+    margin-top: 10px; font-size: 11px; line-height: 1.45;
+    color: var(--color-text-secondary);
+  }
+
   .verify-empty {
     text-align: center;
     padding: 40px 16px;
@@ -453,6 +492,7 @@
           <div class="verify-score-label" id="verify-score-label">Citation Accuracy</div>
         </div>
         <div id="verify-details"></div>
+        <div id="decision-layer" style="display:none;"></div>
       </div>
     </div>
 
@@ -574,7 +614,7 @@
       messagesEl.innerHTML += `<div class="chat-msg ai">${answerHtml}</div>`;
       messagesEl.scrollTop = messagesEl.scrollHeight;
 
-      renderVerification(verification, citations);
+      renderVerification(verification, citations, j.gate);
 
       if (!apiOnline) apiOnline = true;
       document.getElementById('health-dot').style.background = '#4A7A35';
@@ -586,17 +626,40 @@
     }
   }
 
+  // Page display: markdown/plain-text sources have no pages, and the API sends
+  // "N/A". Blindly prefixing "p." produced "p.N/A" all over the UI.
+  function hasPage(page) {
+    const s = String(page ?? '').trim();
+    return s !== '' && !/^(n\/?a|none|null|unknown|-)$/i.test(s);
+  }
+  function fmtPage(page) {
+    return hasPage(page) ? 'p.' + esc(String(page).trim()) : '';
+  }
+  function pageSuffix(page) {
+    return hasPage(page) ? ', p.' + esc(String(page).trim()) : '';
+  }
+
+  // The generator emits lightweight markdown (bold, inline code). Render the
+  // couple of inline forms that actually appear instead of leaking "**" into
+  // the transcript. Input is already HTML-escaped, so this only ever re-adds
+  // tags around already-safe text.
+  function renderInlineMarkdown(escaped) {
+    return escaped
+      .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  }
+
   function renderAnswer(answer, citations, isRefusal) {
-    let html = esc(answer);
+    let html = renderInlineMarkdown(esc(answer));
     citations.forEach(c => {
-      const tag = `<span class="cite-tag">Source: ${esc(c.source)}, p.${esc(c.page)}</span>`;
+      const tag = `<span class="cite-tag">Source: ${esc(c.source)}${pageSuffix(c.page)}</span>`;
       html = html.replace(new RegExp(`\\[Source:\\s*${escRegex(c.source)}\\s*,?\\s*(?:Page|p\\.?|pg\\.?|Section)?\\s*${escRegex(c.page)}\\s*\\]`, 'gi'), tag);
     });
     if (isRefusal) html += '<br><span class="refusal-badge">Honest refusal</span>';
     return html;
   }
 
-  function renderVerification(verification, citations) {
+  function renderVerification(verification, citations, gate) {
     const el = document.getElementById('verify-content');
     const empty = document.getElementById('verify-empty');
     const detailsEl = document.getElementById('verify-details');
@@ -618,11 +681,21 @@
       verification.details.forEach(d => {
         const cls = d.supported ? 'pass' : 'fail';
         const icon = d.supported ? '✓' : '✗';
+        // Per-claim calibrated probability (present only on the decision-model path)
+        let confHtml = '';
+        if (typeof d.confidence === 'number') {
+          const pct = Math.round(d.confidence * 100);
+          confHtml = `<div class="conf-wrap" title="Calibrated probability this claim is supported by the cited source">
+            <div class="conf-bar"><div class="conf-fill" style="width:${pct}%"></div></div>
+            <span class="conf-num">${d.confidence.toFixed(2)}</span>
+          </div>`;
+        }
         html += `<div class="verify-row ${cls}">
           <div class="verify-icon">${icon}</div>
           <div>
-            <div class="verify-source">${esc(d.citation?.source || '?')} · p.${esc(d.citation?.page || '?')}</div>
+            <div class="verify-source">${esc(d.citation?.source || '?')}${d.citation && hasPage(d.citation.page) ? ' · ' + fmtPage(d.citation.page) : ''}</div>
             <div class="verify-claim">${esc(d.citation?.claim || '')}</div>
+            ${confHtml}
           </div>
         </div>`;
       });
@@ -632,8 +705,59 @@
       detailsEl.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--color-text-secondary);text-align:center;">No citations found in the response.</div>';
     }
 
+    renderDecisionLayer(verification, gate);
+
     empty.style.display = 'none';
     el.style.display = 'block';
+  }
+
+  // System One panel: which engine judged the claims, what it cost, and what the
+  // pre-generation gate decided about the query itself.
+  function renderDecisionLayer(verification, gate) {
+    const box = document.getElementById('decision-layer');
+    if (!box) return;
+
+    const engine = verification.engine || 'llm';
+    const rows = [];
+
+    const badge = `<span class="engine-badge ${esc(engine)}">${esc(engine)}</span>`;
+    rows.push(['Verified by', badge]);
+
+    if (typeof verification.decision_cost === 'number') {
+      rows.push(['Decision cost', '$' + verification.decision_cost.toFixed(6)]);
+    }
+    if (verification.decision_route) {
+      rows.push(['Route', esc(verification.decision_route)]);
+    }
+    if (typeof verification.min_confidence === 'number') {
+      rows.push(['Lowest claim confidence', verification.min_confidence.toFixed(2)]);
+    }
+
+    if (gate) {
+      if (typeof gate.answerable_probability === 'number') {
+        rows.push(['Gate: answerable', gate.answerable_probability.toFixed(2)]);
+      }
+      if (gate.retrieval_route) {
+        rows.push(['Gate: retrieval route', esc(gate.retrieval_route)]);
+      }
+      if (typeof gate.complexity_score === 'number') {
+        rows.push(['Gate: complexity', gate.complexity_score.toFixed(2)]);
+      }
+    }
+
+    if (rows.length <= 1 && !gate) {
+      box.style.display = 'none';
+      box.innerHTML = '';
+      return;
+    }
+
+    box.innerHTML = `
+      <div class="decide-box">
+        <div class="decide-title">Decision layer</div>
+        ${rows.map(([k, v]) => `<div class="decide-row"><span class="decide-k">${k}</span><span class="decide-v">${v}</span></div>`).join('')}
+        <div class="decide-note">Claims are judged by a typed decision model in one batched call, not by asking the frontier model to reply "yes". Probabilities are calibrated, not guarantees.</div>
+      </div>`;
+    box.style.display = 'block';
   }
 
   function showOfflineBanner() {
@@ -662,6 +786,10 @@
       <div class="verify-row pass"><div class="verify-icon">✓</div><div><div class="verify-source">refund-policy.md · p.1</div><div class="verify-claim">Annual subscriptions can be refunded within 30 days</div></div></div>
       <div class="verify-row pass"><div class="verify-icon">✓</div><div><div class="verify-source">refund-policy.md · p.1</div><div class="verify-claim">Refunds are processed to the original payment method</div></div></div>
     `;
+    // Offline preview is canned — it ran no decision model. Clear any panel left
+    // over from a previous live query so it never implies otherwise.
+    const dl = document.getElementById('decision-layer');
+    if (dl) { dl.style.display = 'none'; dl.innerHTML = ''; }
   }
 
   function esc(s) {

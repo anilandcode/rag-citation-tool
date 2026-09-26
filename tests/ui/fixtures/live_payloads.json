@@ -1,0 +1,306 @@
+{
+  "answer": {
+    "answer": "Annual subscriptions can be refunded within 30 days of the initial purchase date [Source: refund-policy.md, Page N/A]. After 30 days, no refunds are available for the remaining months of the subscription term [Source: refund-policy.md, Page N/A].\n\nRefunds are processed to the original payment method within 5–10 business days [Source: refund-policy.md, Page N/A]. If the card used for purchase has been cancelled or replaced, the refund will be issued as account credit [Source: refund-policy.md, Page N/A].\n\nTo request a refund, contact **billing@citerag.com** or use the Billing tab in your account dashboard [Source: refund-policy.md, Page N/A]. Include your invoice ID [Source: refund-policy.md, Page N/A]. Requests are processed within 2 business days [Source: refund-policy.md, Page N/A].",
+    "citations": [
+      {
+        "source": "refund-policy.md",
+        "page": "N/A",
+        "claim": "Annual subscriptions can be refunded within 30 days of the initial purchase date"
+      },
+      {
+        "source": "refund-policy.md",
+        "page": "N/A",
+        "claim": "After 30 days, no refunds are available for the remaining months of the subscription term"
+      },
+      {
+        "source": "refund-policy.md",
+        "page": "N/A",
+        "claim": "Refunds are processed to the original payment method within 5–10 business days"
+      },
+      {
+        "source": "refund-policy.md",
+        "page": "N/A",
+        "claim": "If the card used for purchase has been cancelled or replaced, the refund will be issued as account credit"
+      },
+      {
+        "source": "refund-policy.md",
+        "page": "N/A",
+        "claim": "To request a refund, contact **billing@citerag.com** or use the Billing tab in your account dashboard"
+      },
+      {
+        "source": "refund-policy.md",
+        "page": "N/A",
+        "claim": "Include your invoice ID"
+      },
+      {
+        "source": "refund-policy.md",
+        "page": "N/A",
+        "claim": "Requests are processed within 2 business days"
+      }
+    ],
+    "verification": {
+      "total_citations": 7,
+      "verified": 7,
+      "accuracy": 1.0,
+      "is_refusal": false,
+      "details": [
+        {
+          "citation": {
+            "source": "refund-policy.md",
+            "page": "N/A",
+            "claim": "Annual subscriptions can be refunded within 30 days of the initial purchase date"
+          },
+          "supported": true,
+          "source_text": "# Refund Policy — CiteRAG (Sample)\n\n**Effective Date:** January 1, 2026\n\n## Annual Subscription Refunds\n\nAnnual subscriptions can be refunded within 30 days of the initial purchase date. After 30 days, no refunds are available for the remaining months of the subscription term.\n\nRefunds are processed to the original payment method within 5–10 business days. If the card used for purchase has been cancelled or replaced, the refund will be issued as account credit.\n\n## Monthly Plans\n\nMonthly plans a",
+          "confidence": 0.98
+        },
+        {
+          "citation": {
+            "source": "refund-policy.md",
+            "page": "N/A",
+            "claim": "After 30 days, no refunds are available for the remaining months of the subscription term"
+          },
+          "supported": true,
+          "source_text": "# Refund Policy — CiteRAG (Sample)\n\n**Effective Date:** January 1, 2026\n\n## Annual Subscription Refunds\n\nAnnual subscriptions can be refunded within 30 days of the initial purchase date. After 30 days, no refunds are available for the remaining months of the subscription term.\n\nRefunds are processed to the original payment method within 5–10 business days. If the card used for purchase has been cancelled or replaced, the refund will be issued as account credit.\n\n## Monthly Plans\n\nMonthly plans a",
+          "confidence": 0.98
+        },
+        {
+          "citation": {
+            "source": "refund-policy.md",
+            "page": "N/A",
+            "claim": "Refunds are processed to the original payment method within 5–10 business days"
+          },
+          "supported": true,
+          "source_text": "# Refund Policy — CiteRAG (Sample)\n\n**Effective Date:** January 1, 2026\n\n## Annual Subscription Refunds\n\nAnnual subscriptions can be refunded within 30 days of the initial purchase date. After 30 days, no refunds are available for the remaining months of the subscription term.\n\nRefunds are processed to the original payment method within 5–10 business days. If the card used for purchase has been cancelled or replaced, the refund will be issued as account credit.\n\n## Monthly Plans\n\nMonthly plans a",
+          "confidence": 0.98
+        },
+        {
+          "citation": {
+            "source": "refund-policy.md",
+            "page": "N/A",
+            "claim": "If the card used for purchase has been cancelled or replaced, the refund will be issued as account credit"
+          },
+          "supported": true,
+          "source_text": "# Refund Policy — CiteRAG (Sample)\n\n**Effective Date:** January 1, 2026\n\n## Annual Subscription Refunds\n\nAnnual subscriptions can be refunded within 30 days of the initial purchase date. After 30 days, no refunds are available for the remaining months of the subscription term.\n\nRefunds are processed to the original payment method within 5–10 business days. If the card used for purchase has been cancelled or replaced, the refund will be issued as account credit.\n\n## Monthly Plans\n\nMonthly plans a",
+          "confidence": 0.98
+        },
+        {
+          "citation": {
+            "source": "refund-policy.md",
+            "page": "N/A",
+            "claim": "To request a refund, contact **billing@citerag.com** or use the Billing tab in your account dashboard"
+          },
+          "supported": true,
+          "source_text": "# Refund Policy — CiteRAG (Sample)\n\n**Effective Date:** January 1, 2026\n\n## Annual Subscription Refunds\n\nAnnual subscriptions can be refunded within 30 days of the initial purchase date. After 30 days, no refunds are available for the remaining months of the subscription term.\n\nRefunds are processed to the original payment method within 5–10 business days. If the card used for purchase has been cancelled or replaced, the refund will be issued as account credit.\n\n## Monthly Plans\n\nMonthly plans a",
+          "confidence": 0.98
+        },
+        {
+          "citation": {
+            "source": "refund-policy.md",
+            "page": "N/A",
+            "claim": "Include your invoice ID"
+          },
+          "supported": true,
+          "source_text": "# Refund Policy — CiteRAG (Sample)\n\n**Effective Date:** January 1, 2026\n\n## Annual Subscription Refunds\n\nAnnual subscriptions can be refunded within 30 days of the initial purchase date. After 30 days, no refunds are available for the remaining months of the subscription term.\n\nRefunds are processed to the original payment method within 5–10 business days. If the card used for purchase has been cancelled or replaced, the refund will be issued as account credit.\n\n## Monthly Plans\n\nMonthly plans a",
+          "confidence": 0.98
+        },
+        {
+          "citation": {
+            "source": "refund-policy.md",
+            "page": "N/A",
+            "claim": "Requests are processed within 2 business days"
+          },
+          "supported": true,
+          "source_text": "# Refund Policy — CiteRAG (Sample)\n\n**Effective Date:** January 1, 2026\n\n## Annual Subscription Refunds\n\nAnnual subscriptions can be refunded within 30 days of the initial purchase date. After 30 days, no refunds are available for the remaining months of the subscription term.\n\nRefunds are processed to the original payment method within 5–10 business days. If the card used for purchase has been cancelled or replaced, the refund will be issued as account credit.\n\n## Monthly Plans\n\nMonthly plans a",
+          "confidence": 0.94
+        }
+      ],
+      "engine": "jev",
+      "decision_cost": 9.8826e-05,
+      "decision_id": "gen-dec-1790440604-Bhbi2GuTHWuXKggNbtkO",
+      "decision_route": "gateway",
+      "min_confidence": 0.94
+    },
+    "evaluation": {
+      "citation_accuracy": 1.0,
+      "citations_found": 7,
+      "citations_verified": 7,
+      "is_refusal": false,
+      "sources_retrieved": 4,
+      "verification_engine": "jev"
+    },
+    "gate": {
+      "answerable_probability": 0.98,
+      "retrieval_route": "vector_only",
+      "route_confidence": 0.66,
+      "complexity_score": 0.87,
+      "complexity_confidence": 0.87,
+      "short_circuit": false,
+      "model": "typesafe/jev-1.13-20260917",
+      "cost": 6.8838e-05,
+      "request_id": "gen-dec-1790440592-yiCPh4FEhcWmrf9wq5yE"
+    }
+  },
+  "multi": {
+    "answer": "The Professional plan costs $199/month [Source: pricing.md, Page N/A].\n\nIt includes up to 50,000 documents, 5,000 queries/day, priority support, and custom evaluation datasets [Source: pricing.md, Page N/A].\n\nAnnual subscriptions can be refunded within 30 days of the initial purchase date [Source: refund-policy.md, Page N/A]. After 30 days, no refunds are available for the remaining months of the subscription term [Source: refund-policy.md, Page N/A].\n\nMonthly plans are non-refundable [Source: refund-policy.md, Page N/A]. You may cancel at any time, and your access continues until the end of the current billing period [Source: refund-policy.md, Page N/A].",
+    "citations": [
+      {
+        "source": "pricing.md",
+        "page": "N/A",
+        "claim": "The Professional plan costs $199/month"
+      },
+      {
+        "source": "pricing.md",
+        "page": "N/A",
+        "claim": "It includes up to 50,000 documents, 5,000 queries/day, priority support, and custom evaluation datasets"
+      },
+      {
+        "source": "refund-policy.md",
+        "page": "N/A",
+        "claim": "Annual subscriptions can be refunded within 30 days of the initial purchase date"
+      },
+      {
+        "source": "refund-policy.md",
+        "page": "N/A",
+        "claim": "After 30 days, no refunds are available for the remaining months of the subscription term"
+      },
+      {
+        "source": "refund-policy.md",
+        "page": "N/A",
+        "claim": "Monthly plans are non-refundable"
+      },
+      {
+        "source": "refund-policy.md",
+        "page": "N/A",
+        "claim": "You may cancel at any time, and your access continues until the end of the current billing period"
+      }
+    ],
+    "verification": {
+      "total_citations": 6,
+      "verified": 6,
+      "accuracy": 1.0,
+      "is_refusal": false,
+      "details": [
+        {
+          "citation": {
+            "source": "pricing.md",
+            "page": "N/A",
+            "claim": "The Professional plan costs $199/month"
+          },
+          "supported": true,
+          "source_text": "# CiteRAG Pricing Plans\n\n## Starter\n$49/month — up to 5,000 documents · 500 queries/day · email support\n\n## Professional\n$199/month — up to 50,000 documents · 5,000 queries/day · priority support · custom evaluation datasets\n\n## Enterprise\nCustom pricing — unlimited documents · dedicated infrastructure · SSO/SAML · audit logs · data residency options\n\nAll plans include: hybrid search, citation verification, RAGAS evaluation dashboard, and API access.\n\nFree 14-day trial available on Starter and P",
+          "confidence": 0.99
+        },
+        {
+          "citation": {
+            "source": "pricing.md",
+            "page": "N/A",
+            "claim": "It includes up to 50,000 documents, 5,000 queries/day, priority support, and custom evaluation datasets"
+          },
+          "supported": true,
+          "source_text": "# CiteRAG Pricing Plans\n\n## Starter\n$49/month — up to 5,000 documents · 500 queries/day · email support\n\n## Professional\n$199/month — up to 50,000 documents · 5,000 queries/day · priority support · custom evaluation datasets\n\n## Enterprise\nCustom pricing — unlimited documents · dedicated infrastructure · SSO/SAML · audit logs · data residency options\n\nAll plans include: hybrid search, citation verification, RAGAS evaluation dashboard, and API access.\n\nFree 14-day trial available on Starter and P",
+          "confidence": 0.94
+        },
+        {
+          "citation": {
+            "source": "refund-policy.md",
+            "page": "N/A",
+            "claim": "Annual subscriptions can be refunded within 30 days of the initial purchase date"
+          },
+          "supported": true,
+          "source_text": "# Refund Policy — CiteRAG (Sample)\n\n**Effective Date:** January 1, 2026\n\n## Annual Subscription Refunds\n\nAnnual subscriptions can be refunded within 30 days of the initial purchase date. After 30 days, no refunds are available for the remaining months of the subscription term.\n\nRefunds are processed to the original payment method within 5–10 business days. If the card used for purchase has been cancelled or replaced, the refund will be issued as account credit.\n\n## Monthly Plans\n\nMonthly plans a",
+          "confidence": 0.98
+        },
+        {
+          "citation": {
+            "source": "refund-policy.md",
+            "page": "N/A",
+            "claim": "After 30 days, no refunds are available for the remaining months of the subscription term"
+          },
+          "supported": true,
+          "source_text": "# Refund Policy — CiteRAG (Sample)\n\n**Effective Date:** January 1, 2026\n\n## Annual Subscription Refunds\n\nAnnual subscriptions can be refunded within 30 days of the initial purchase date. After 30 days, no refunds are available for the remaining months of the subscription term.\n\nRefunds are processed to the original payment method within 5–10 business days. If the card used for purchase has been cancelled or replaced, the refund will be issued as account credit.\n\n## Monthly Plans\n\nMonthly plans a",
+          "confidence": 0.98
+        },
+        {
+          "citation": {
+            "source": "refund-policy.md",
+            "page": "N/A",
+            "claim": "Monthly plans are non-refundable"
+          },
+          "supported": true,
+          "source_text": "# Refund Policy — CiteRAG (Sample)\n\n**Effective Date:** January 1, 2026\n\n## Annual Subscription Refunds\n\nAnnual subscriptions can be refunded within 30 days of the initial purchase date. After 30 days, no refunds are available for the remaining months of the subscription term.\n\nRefunds are processed to the original payment method within 5–10 business days. If the card used for purchase has been cancelled or replaced, the refund will be issued as account credit.\n\n## Monthly Plans\n\nMonthly plans a",
+          "confidence": 0.98
+        },
+        {
+          "citation": {
+            "source": "refund-policy.md",
+            "page": "N/A",
+            "claim": "You may cancel at any time, and your access continues until the end of the current billing period"
+          },
+          "supported": true,
+          "source_text": "# Refund Policy — CiteRAG (Sample)\n\n**Effective Date:** January 1, 2026\n\n## Annual Subscription Refunds\n\nAnnual subscriptions can be refunded within 30 days of the initial purchase date. After 30 days, no refunds are available for the remaining months of the subscription term.\n\nRefunds are processed to the original payment method within 5–10 business days. If the card used for purchase has been cancelled or replaced, the refund will be issued as account credit.\n\n## Monthly Plans\n\nMonthly plans a",
+          "confidence": 0.9
+        }
+      ],
+      "engine": "jev",
+      "decision_cost": 7.8456e-05,
+      "decision_id": "gen-dec-1790440618-Y8Ee9wbpMzLGwiYgpmh4",
+      "decision_route": "gateway",
+      "min_confidence": 0.9
+    },
+    "evaluation": {
+      "citation_accuracy": 1.0,
+      "citations_found": 6,
+      "citations_verified": 6,
+      "is_refusal": false,
+      "sources_retrieved": 4,
+      "verification_engine": "jev"
+    },
+    "gate": {
+      "answerable_probability": 0.89,
+      "retrieval_route": "hybrid",
+      "route_confidence": 1.0,
+      "complexity_score": 2.0,
+      "complexity_confidence": 1.0,
+      "short_circuit": false,
+      "model": "typesafe/jev-1.13-20260917",
+      "cost": 6.909e-05,
+      "request_id": "gen-dec-1790440606-xk5Auvavzk9V2PSGwQne"
+    }
+  },
+  "refusal": {
+    "answer": "I don't have enough information to answer this.",
+    "citations": [],
+    "verification": {
+      "total_citations": 0,
+      "verified": 0,
+      "accuracy": 1.0,
+      "is_refusal": true,
+      "details": [],
+      "engine": "none",
+      "decision_cost": null,
+      "decision_id": "",
+      "decision_route": "",
+      "min_confidence": null
+    },
+    "evaluation": {
+      "citation_accuracy": 1.0,
+      "citations_found": 0,
+      "citations_verified": 0,
+      "is_refusal": true,
+      "sources_retrieved": 4,
+      "verification_engine": "none"
+    },
+    "gate": {
+      "answerable_probability": 0.03,
+      "retrieval_route": "keyword_only",
+      "route_confidence": 0.64,
+      "complexity_score": 0.54,
+      "complexity_confidence": 0.46,
+      "short_circuit": false,
+      "model": "typesafe/jev-1.13-20260917",
+      "cost": 6.8838e-05,
+      "request_id": "gen-dec-1790440620-WvMhhRWWBsPu0tvo6b4y"
+    }
+  }
+}
