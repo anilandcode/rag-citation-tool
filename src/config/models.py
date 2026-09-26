@@ -33,6 +33,12 @@ def _chat_http(
     temperature: float = 0.1,
     max_tokens: int = 1024,
 ) -> str:
+    """POST /chat/completions with retries.
+
+    Reasoning models (e.g. nvidia nemotron) can burn the whole token budget on
+    hidden reasoning and return empty content — detect that and retry with a
+    larger budget before giving up.
+    """
     import httpx
 
     payload = {
@@ -42,9 +48,11 @@ def _chat_http(
         "max_tokens": max_tokens,
     }
     last_err = "no attempt ran"
-    for attempt in range(4):
+    budgets = [max_tokens, max_tokens * 2, max_tokens * 4]
+    for attempt, budget in enumerate(budgets + [max_tokens * 4] * 3):
+        payload["max_tokens"] = budget
         try:
-            with httpx.Client(timeout=180.0) as client:
+            with httpx.Client(timeout=240.0) as client:
                 r = client.post(
                     f"{_base_url()}/chat/completions",
                     headers=_headers(),
@@ -53,14 +61,23 @@ def _chat_http(
                 if r.status_code == 429:
                     import time
 
-                    last_err = f"429 rate limited (attempt {attempt})"
+                    last_err = f"429 rate limited (attempt {attempt}, budget {budget})"
                     time.sleep(3 * (attempt + 1))
                     continue
                 if r.status_code >= 400:
                     last_err = f"HTTP {r.status_code}: {r.text[:300]}"
                     r.raise_for_status()
                 data = r.json()
-            return data["choices"][0]["message"]["content"] or ""
+            choice = data["choices"][0]
+            content = (choice.get("message") or {}).get("content") or ""
+            if not content.strip():
+                # empty content — likely reasoning-only completion; retry bigger
+                last_err = f"empty content (finish={choice.get('finish_reason')}, budget={budget})"
+                import time
+
+                time.sleep(1)
+                continue
+            return content
         except Exception as exc:  # noqa: BLE001 - retry transient gateway errors
             last_err = f"{type(exc).__name__}: {exc}"
             import time
@@ -70,14 +87,30 @@ def _chat_http(
 
 
 def _embed_http(model: str, texts: List[str]) -> List[List[float]]:
+    """POST /embeddings with 429/5xx retry + backoff (free gateway tiers)."""
+    import time
+
     import httpx
 
     payload = {"model": model, "input": texts}
-    with httpx.Client(timeout=180.0) as client:
-        r = client.post(f"{_base_url()}/embeddings", headers=_headers(), json=payload)
-        r.raise_for_status()
-        data = sorted(r.json()["data"], key=lambda d: d.get("index", 0))
-    return [row["embedding"] for row in data]
+    last_err = "no attempt ran"
+    import random
+
+    for attempt in range(9):
+        try:
+            with httpx.Client(timeout=120.0) as client:
+                r = client.post(f"{_base_url()}/embeddings", headers=_headers(), json=payload)
+                if r.status_code == 429 or r.status_code >= 500:
+                    last_err = f"HTTP {r.status_code} (attempt {attempt})"
+                    time.sleep(min(4 * (attempt + 1), 25) + random.uniform(0, 2))
+                    continue
+                r.raise_for_status()
+                data = sorted(r.json()["data"], key=lambda d: d.get("index", 0))
+            return [row["embedding"] for row in data]
+        except Exception as exc:  # noqa: BLE001 - retry transient gateway errors
+            last_err = f"{type(exc).__name__}: {exc}"
+            time.sleep(min(4 * (attempt + 1), 25) + random.uniform(0, 2))
+    raise RuntimeError(f"embeddings failed: {last_err}")
 
 
 # --------------------------------------------------------------------------- #
@@ -91,7 +124,10 @@ def _make_http_llm(model: str, temperature: float):
         LLMMetadata,
         MessageRole,
     )
-    from llama_index.core.llms.callbacks import llm_completion_callback
+    from llama_index.core.llms.callbacks import (
+        llm_chat_callback,
+        llm_completion_callback,
+    )
     from llama_index.core.llms.custom import CustomLLM
 
     _model_name = model
@@ -114,7 +150,7 @@ def _make_http_llm(model: str, temperature: float):
             )
             return CompletionResponse(text=text)
 
-        @llm_completion_callback()
+        @llm_chat_callback()
         def chat(self, messages: Sequence[ChatMessage], **kwargs: Any):
             raw = []
             for m in messages:
@@ -129,7 +165,7 @@ def _make_http_llm(model: str, temperature: float):
         def stream_complete(self, prompt: str, formatted: bool = False, **kwargs: Any):
             yield self.complete(prompt, formatted=formatted, **kwargs)
 
-        @llm_completion_callback()
+        @llm_chat_callback()
         def stream_chat(self, messages: Sequence[ChatMessage], **kwargs: Any):
             yield self.chat(messages, **kwargs)
 
@@ -144,6 +180,19 @@ def get_eval_llm():
     return _make_http_llm(
         settings.llm_eval_model or settings.llm_model, temperature=0.0
     )
+
+
+def configure_llama_index_defaults() -> None:
+    """Set llama-index global Settings so components that implicitly resolve
+    `Settings.llm` / `Settings.embed_model` (QueryFusionRetriever,
+    RetrieverQueryEngine, VectorStoreIndex) use our raw-HTTP gateway clients
+    instead of trying to import `llama-index-llms-openai` (not installed;
+    its pinned releases are broken against current openai SDKs).
+    """
+    from llama_index.core import Settings as LISettings
+
+    LISettings.llm = get_llm()
+    LISettings.embed_model = get_embed_model()
 
 
 # --------------------------------------------------------------------------- #

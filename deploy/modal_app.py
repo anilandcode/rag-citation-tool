@@ -26,8 +26,8 @@ image = (
                 "http://localhost:8080,"
                 "http://127.0.0.1:8080"
             ),
-            "LLM_MODEL": "qwen/qwen3.8-27b:free",
-            "LLM_EVAL_MODEL": "qwen/qwen3.8-27b:free",
+            "LLM_MODEL": "nvidia/nemotron-3-ultra-550b-a55b:free",
+            "LLM_EVAL_MODEL": "nvidia/nemotron-3-ultra-550b-a55b:free",
             "EMBEDDING_MODEL": "liquid/lfm-2.5-embedding-350m:free",
             "OPENAI_BASE_URL": "https://openrouter.ai/api/v1",
             "PYTHONPATH": "/root",
@@ -45,8 +45,10 @@ app = modal.App(APP_NAME, image=image)
     secrets=[modal.Secret.from_name("citerag-secrets")],
     timeout=600,
     memory=2048,
-    cpu=1.0,
-    min_containers=0,
+    cpu=0.25,
+    # Single warm container: the index is in-memory, so all requests must hit
+    # the same process. 0.25 CPU + 2GB stays inside Modal's free credit.
+    min_containers=1,
     scaledown_window=300,
 )
 @modal.asgi_app()

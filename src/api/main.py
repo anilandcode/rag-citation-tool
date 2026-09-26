@@ -81,6 +81,9 @@ def seed_demo_corpus() -> dict:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     log.info("startup", auto_seed=settings.demo_auto_seed)
+    from src.config.models import configure_llama_index_defaults
+
+    configure_llama_index_defaults()
     init_langfuse_llama_index()
     if settings.demo_auto_seed:
         try:

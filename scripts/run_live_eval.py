@@ -295,7 +295,7 @@ Frontend-only smoke (no API): `bash scripts/smoke_hosted.sh`
             }
             qf.write(json.dumps(row, ensure_ascii=False) + "\n")
             rows.append(row)
-            time.sleep(0.3)  # gentle on free tier
+            time.sleep(2.0)  # gentle on free-tier gateway rate limits
 
     duration = round(time.time() - t0, 2)
     stats = {
