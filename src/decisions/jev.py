@@ -166,9 +166,11 @@ def _routes() -> list[tuple[str, str, str, dict[str, str]]]:
 
     key = _router_key()
     gateway_url = _decisions_url()
-    if key and gateway_url and not (direct and gateway_url.startswith(
-            (settings.typesafe_base_url or "https://api.typesafe.ai").rstrip("/"))):
-        out.append(("gateway", gateway_url, settings.jev_model, _headers(key)))
+    if key and gateway_url:
+        # Never register the same URL twice (e.g. JEV_DECISIONS_URL pointed at
+        # TypeSafe while a direct key is also set).
+        if not any(url == gateway_url for _, url, _, _ in out):
+            out.append(("gateway", gateway_url, settings.jev_model, _headers(key)))
 
     return out
 
@@ -273,7 +275,14 @@ def ask(
                     )
                     continue
                 candidate = r.json()
-        except Exception as exc:  # noqa: BLE001 - try the next route
+        except httpx.TimeoutException as exc:
+            # An unknown outcome may ALREADY be charged and the endpoint
+            # documents no idempotency key — stop rather than fail over to a
+            # second route and risk paying twice for one decision.
+            last_error = name + ":timeout"
+            log.warning("jev_route_timeout", route=name, error=str(exc)[:200])
+            return DecisionResult(ok=False, error=last_error)
+        except Exception as exc:  # noqa: BLE001 - safe to try the next route
             last_error = name + ":" + type(exc).__name__
             log.warning("jev_route_failed", route=name, error=str(exc)[:200])
             continue

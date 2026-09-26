@@ -232,6 +232,27 @@ img { max-width: 100%; display: block; }
 .prod-table .have { color: var(--color-accent); font-weight: 600; font-size: 13px; }
 .prod-note { margin-top: 16px; font-size: 13px; color: var(--color-text-secondary); max-width: 72ch; }
 
+.split-box { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 28px; }
+.split-col {
+  background: white; border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card); padding: 28px;
+}
+.split-col h3 { font-size: 22px; margin: 8px 0 12px; color: var(--color-text-primary); }
+.split-col p { color: var(--color-text-secondary); font-size: 15px; line-height: 1.6; margin-bottom: 12px; }
+.split-col strong { color: var(--color-text-primary); }
+.scale-list { list-style: none; padding: 0; margin: 0 0 12px; }
+.scale-list li {
+  font-size: 15px; color: var(--color-text-secondary);
+  padding: 10px 0 10px 18px; border-bottom: 1px solid var(--color-border-subtle);
+  position: relative; line-height: 1.5;
+}
+.scale-list li:last-child { border-bottom: 0; }
+.scale-list li::before {
+  content: ""; position: absolute; left: 0; top: 18px;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--color-accent);
+}
+.scale-list strong { color: var(--color-accent); }
+
 .offer-grid { display: grid; grid-template-columns: 1.2fr .8fr .8fr; gap: 16px; margin-top: 36px; }
 .offer-card {
   background: white; border: 1px solid var(--color-border-subtle);
@@ -278,7 +299,7 @@ img { max-width: 100%; display: block; }
   .hero-section { padding: 64px 20px 0; min-height: auto; }
   .hero-headline { font-size: 36px; }
   .section { padding: 64px 20px; }
-  .features-grid, .offer-grid, .faq-wrap, .footer, .mockup-panes { grid-template-columns: 1fr; }
+  .features-grid, .offer-grid, .faq-wrap, .footer, .mockup-panes, .split-box { grid-template-columns: 1fr; }
   .scene { min-height: 0; }
   .scene-wash, .scene.flip .scene-wash {
     background: linear-gradient(180deg, rgba(20,28,18,.25) 0%, rgba(20,28,18,.82) 70%);
@@ -298,6 +319,7 @@ img { max-width: 100%; display: block; }
   <div class="nav-links" id="navlinks">
     <a href="#how">How it works</a>
     <a href="#production">Production</a>
+    <a href="#scale">Scale</a>
     <a href="#offer">Offer</a>
     <a href="/v1">Original</a>
   </div>
@@ -418,6 +440,63 @@ img { max-width: 100%; display: block; }
     </tbody>
   </table>
   <p class="prod-note">Baseline from 2026 RAG architecture writeups (hybrid + RRF + rerank, RAGAS, traces). No live faithfulness KPI on this page. Render can be cold. Cohere and Pinecone are env keys.</p>
+</section>
+
+<section class="section" id="scale" style="background:white;">
+  <div class="section-label">Small team to large org</div>
+  <h2 class="section-h2">The same pipeline,<br><span class="accent">at four scales.</span></h2>
+  <p class="section-body" style="margin-top:16px;">Nothing here is a hypothetical roadmap. Column three is what the repo does today; column four is the honest gap. The demo you clicked runs tier one, on the live API.</p>
+  <table class="prod-table">
+    <thead>
+      <tr><th>Scale</th><th>What has to change</th><th>In the repo today</th><th>Gap to close</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Tier 1</strong><br>Small team<br>~1k docs</td>
+        <td>One process, in-memory index, shared demo key</td>
+        <td class="have">Live now: memory backend, BM25 + vector fusion, demo key</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>Tier 2</strong><br>Department<br>~50k docs</td>
+        <td>Index outlives the process; per-team keys</td>
+        <td class="have">Pinecone store coded behind use_pinecone + key</td>
+        <td>Needs a real Pinecone index; keys are still a single shared secret</td>
+      </tr>
+      <tr>
+        <td><strong>Tier 3</strong><br>Company<br>multi-team</td>
+        <td>Rate limits and auth survive more than one replica</td>
+        <td class="have">API key vs demo key split, sliding-window rate limit, audit trail via traces</td>
+        <td>Rate limiter is in-memory — per instance, not shared across replicas</td>
+      </tr>
+      <tr>
+        <td><strong>Tier 4</strong><br>Regulated org</td>
+        <td>Identity, tenancy, residency, sign-off</td>
+        <td>Structured logs, per-query decision records with cost and confidence</td>
+        <td>No SSO/SAML, no multi-tenancy, no RBAC built. Sold as custom work, not shipped features</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="split-box">
+    <div class="split-col">
+      <div class="section-label">Cost per 1,000 answers</div>
+      <h3>Decisions left the expensive model.</h3>
+      <p>Verifying a claim used to mean asking a frontier model to "reply yes or no" — once per claim. On a reasoning model that is roughly a thousand hidden tokens per boolean.</p>
+      <p>Now every claim in an answer is checked in <strong>one batched decision call</strong> that returns a calibrated probability instead of a bare yes. Measured live on this demo: <strong>61 claims across 17 queries for $0.0019</strong> total, at 100% verification accuracy.</p>
+      <p class="prod-note" style="margin-top:12px;">Report: docs/reports/2026-09-26_131644_live. Real run, not a projected figure.</p>
+    </div>
+    <div class="split-col">
+      <div class="section-label">What the gate caught</div>
+      <h3>It knows when it cannot answer.</h3>
+      <p>Before generation, a typed gate scores the query. On the 17-question golden set the separation was total — <strong>no overlap at all</strong>:</p>
+      <ul class="scale-list">
+        <li>Unanswerable questions: <strong>0.01 – 0.03</strong></li>
+        <li>Answerable questions: <strong>0.88 – 0.98</strong></li>
+      </ul>
+      <p>It also routed the one genuinely multi-document question to hybrid search and scored it "needs synthesis across documents" — without being told which questions were multi-hop. Exact-number queries went to keyword search; prose questions went to vector.</p>
+      <p class="prod-note" style="margin-top:12px;">A fabricated claim contradicted by its own source scored 0.01. Decisions are calibrated probabilities, never a guarantee — nothing irreversible is auto-executed.</p>
+    </div>
+  </div>
 </section>
 
 <section class="scene" id="offer-path">
