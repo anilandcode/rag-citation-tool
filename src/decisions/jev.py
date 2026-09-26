@@ -135,13 +135,15 @@ def available() -> bool:
 
     Fail-open by design: without this, callers use the LLM/heuristic path.
     """
-    if not settings.jev_enabled:
-        return False
-    return bool(_direct_key()) or bool(_router_key() and _decisions_url())
+    return bool(_routes())
 
 
 def _routes() -> list[tuple[str, str, str, dict[str, str]]]:
     """Ordered candidate routes: (name, url, model, headers).
+
+    Single source of truth for "is the decision layer on": both available() and
+    ask() go through here, so JEV_ENABLED=false really does stop network calls
+    rather than only affecting the available() probe.
 
     Direct TypeSafe first — it is first-party and stable; the OpenRouter
     `/api/alpha/decisions` path is explicitly alpha and may change or vanish.
@@ -149,10 +151,17 @@ def _routes() -> list[tuple[str, str, str, dict[str, str]]]:
     """
     out: list[tuple[str, str, str, dict[str, str]]] = []
 
+    if not settings.jev_enabled:
+        return out
+
     direct = _direct_key()
     if direct:
+        # The direct route ALWAYS talks to the TypeSafe host and always uses the
+        # bare model id. JEV_DECISIONS_URL belongs to the *gateway* route only —
+        # honoring it here would send the first-party key to a third-party host
+        # with a model slug that host does not serve.
         base = (settings.typesafe_base_url or "https://api.typesafe.ai").rstrip("/")
-        url = settings.jev_decisions_url or (base + "/v1/systemone")
+        url = base + "/v1/systemone"
         out.append((
             "typesafe",
             url,
@@ -167,9 +176,10 @@ def _routes() -> list[tuple[str, str, str, dict[str, str]]]:
     key = _router_key()
     gateway_url = _decisions_url()
     if key and gateway_url:
-        # Never register the same URL twice (e.g. JEV_DECISIONS_URL pointed at
-        # TypeSafe while a direct key is also set).
-        if not any(url == gateway_url for _, url, _, _ in out):
+        # Never register the same URL twice, and never hand the gateway key to
+        # the TypeSafe host (or vice versa) via a mis-set override.
+        taken = {u for _, u, _, _ in out}
+        if gateway_url not in taken:
             out.append(("gateway", gateway_url, settings.jev_model, _headers(key)))
 
     return out

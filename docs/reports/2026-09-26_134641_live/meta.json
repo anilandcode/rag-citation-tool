@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-09-26T13:49:49.091731+00:00",
+  "git_sha": "c0ec581",
+  "mode": "live",
+  "base": "https://artsineed--citerag-api-api.modal.run",
+  "status": "ok",
+  "health": {
+    "status": "ok",
+    "indexed": true,
+    "chunks": 4,
+    "documents": 4,
+    "sources": [
+      "README_DEMO.md",
+      "pricing.md",
+      "refund-policy.md",
+      "terms-2026.md"
+    ],
+    "version": "0.2.0"
+  },
+  "seed": null,
+  "n_questions": 17,
+  "duration_sec": 187.41,
+  "golden": "tests/eval_datasets/demo_corpus_golden.json",
+  "command": "python scripts/run_live_eval.py --base https://artsineed--citerag-api-api.modal.run"
+}

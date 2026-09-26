@@ -78,6 +78,13 @@ def build_query_engine(retriever, node_postprocessors=None, llm=None):
 
 
 def _extract_claim_before_marker(text: str, match_start: int) -> str:
+    """Return the claim text immediately preceding a citation marker.
+
+    Scans backward from the marker. Two boundaries stop the scan:
+      * a previous citation marker's closing "]" — the claim starts right after
+        it, since a marker always terminates the claim it supports
+      * a sentence terminator followed by whitespace
+    """
     before = text[:match_start].rstrip()
     while before and before[-1] in ".!?":
         before = before[:-1].rstrip()
@@ -86,21 +93,16 @@ def _extract_claim_before_marker(text: str, match_start: int) -> str:
     while i >= 0:
         ch = before[i]
         if ch == "]":
-            depth = 1
-            i -= 1
-            while i >= 0 and depth > 0:
-                if before[i] == "]":
-                    depth += 1
-                elif before[i] == "[":
-                    depth -= 1
-                i -= 1
-            continue
+            # Nearest preceding marker ends here; our claim starts after it.
+            # Bracket matching is unnecessary — we only need the boundary, and
+            # walking further back would bleed the earlier marker into this
+            # claim (which then gets verified against the wrong text).
+            return before[i + 1 :].strip()
         if ch in ".!?\n":
             if i + 1 >= len(before) or before[i + 1] in " \t\n":
-                break
+                return before[i + 1 :].strip()
         i -= 1
-    start = i + 1 if i >= 0 else 0
-    return before[start:].strip()
+    return before.strip()
 
 
 def extract_citations(response_text: str) -> list[Citation]:
