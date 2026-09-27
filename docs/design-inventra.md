@@ -1,5 +1,9 @@
 # CiteRAG Design System - Inventra Rhythm Clone
 
+> Historical design direction. For the redesign planned on 2026-09-28, use
+> [the root design system](../design.md) and [implementation plan](redesign-plan.md).
+> The specification below is retained as history and is not the new design authority.
+
 **Source:** Inventra / Reevo-style SaaS landing (user screenshot 2026-08-15)  
 **Product:** CiteRAG (citation-grounded RAG)  
 **Mode:** Clone **layout + materials + section rhythm**. Original copy, product chrome, and brand mark.  
