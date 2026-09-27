@@ -164,6 +164,22 @@ body.lab-v2 .btn-ghost{color:var(--lab-ink);border:1px solid var(--lab-line-stro
 body.lab-v2 .btn-ghost:hover{border-color:var(--lab-ink)}
 body.lab-v2 :is(.problem-photo,.stack-card img,.method img,.close img){filter:grayscale(1)}
 body.lab-v2 .hero p,body.lab-v2 .hero .hero-eyebrow,body.lab-v2 .hero a:not(.nav-cta){color:var(--lab-ink)}
+body.lab-v2 .hero .btn-primary{color:#fff}
+body.lab-v1 .hero-mockup{background:var(--lab-white);border:1px solid var(--lab-ink);border-radius:0;box-shadow:12px 12px 0 var(--lab-orange-wash)}
+body.lab-v1 .mockup-bar{display:none}
+body.lab-v1 .mockup-panes{gap:0;padding-bottom:0}
+body.lab-v1 .mockup-pane{background:var(--lab-white);border-right:1px solid var(--lab-line);border-radius:0}
+body.lab-v1 .mockup-pane:last-child{border-right:0}
+body.lab-v1 .mockup-label{color:var(--lab-orange-deep);font:600 11px ui-monospace,monospace;letter-spacing:.1em}
+body.lab-v1 .mockup-doc,body.lab-v1 .mockup-msg.user,body.lab-v1 .mockup-vrow,body.lab-v1 .mockup-score{background:var(--lab-paper);color:var(--lab-ink);border:1px solid var(--lab-line);border-radius:0}
+body.lab-v1 .mockup-doc.active,body.lab-v1 .mockup-msg.ai{background:var(--lab-orange-wash);color:var(--lab-ink);border:1px solid var(--lab-orange);border-radius:0}
+body.lab-v1 .mockup-cite{color:var(--lab-orange-deep);background:var(--lab-orange-wash)}
+body.lab-v1 .mockup-score-val{color:var(--lab-ink)}
+body.lab-v1 .mockup-score-label{color:var(--lab-secondary)}
+body.lab-v1 .mockup-doc-icon{background:var(--lab-orange)}
+body.lab-v1 .hero-glow{display:none}
+body.lab-v1 .hero-subhead{color:var(--lab-secondary)}
+body.lab-v1 .btn-dark{color:var(--lab-ink);background:var(--lab-white);border:1px solid var(--lab-line-strong)}
 body.lab-legacy .hero-headline,body.lab-legacy .hero h1{color:var(--lab-ink)}
 body.lab-legacy .hero .accent,body.lab-legacy .section-h2 .accent{color:var(--lab-orange-deep)}
 body.lab-legacy :is(.feature-card,.offer-card,.split-col,.faq-item,.stat-card,.card){border-radius:0}
@@ -174,6 +190,7 @@ body.lab-legacy .scene-img,body.lab-legacy .scene-wash{display:none}
 @media(max-width:1100px){body.lab-demo .demo-main,body.lab-app .playground-grid{grid-template-columns:minmax(185px,26%) minmax(0,1fr)}body.lab-demo .demo-panel:last-child,body.lab-app .play-panel:last-child{grid-column:1/-1;border-top:1px solid var(--lab-line);border-right:0}body.lab-home .nav-links{gap:12px}body.lab-home .nav-bar{padding-inline:24px}}
 @media(max-width:760px){
 body.lab-home .scene::before{display:none}
+body.lab-v1 .mockup-panes{grid-template-columns:1fr}body.lab-v1 .mockup-pane{border-right:0;border-bottom:1px solid var(--lab-line)}body.lab-v1 .mockup-pane:last-child{border-bottom:0}
 body.lab-v2 .hero::after{display:none}body.lab-v2 .hero,body.lab-v2 .hero-copy{min-height:520px}body.lab-v2 .hero-copy{padding:64px 22px}
 body.lab-home .nav-bar{padding:12px 18px;min-height:68px;flex-wrap:wrap}body.lab-home .nav-wordmark{order:0;font-size:18px}body.lab-home .nav-toggle{display:block;order:1}body.lab-home .nav-right{order:2}body.lab-home .nav-links{order:3;width:100%;margin:0;display:none}body.lab-home .nav-links.open{display:flex;position:static;background:var(--lab-paper);box-shadow:none;padding:18px 0;border-bottom:0;align-items:flex-start}body.lab-home .nav-right .btn-outline{display:none}body.lab-home .nav-right .btn-primary{font-size:12px;padding:8px 11px}
 body.lab-home .hero-section{padding:68px 20px 0}body.lab-home .hero-section::before{font-size:9px;white-space:normal}body.lab-home .hero-headline{font-size:clamp(43px,11vw,72px)}body.lab-home .hero-subhead{font-size:17px}body.lab-home .hero-mockup{margin-top:55px}body.lab-home .mockup-panes{grid-template-columns:1fr}body.lab-home .mockup-pane{min-height:0;padding:18px;border-right:0;border-bottom:1px solid var(--lab-line)}body.lab-home .mockup-pane:last-child{border-bottom:0}body.lab-home .section{padding:70px 20px}body.lab-home .features-grid{grid-template-columns:1fr}body.lab-home .feature-card{border-right:0;border-bottom:1px solid var(--lab-line);min-height:0}body.lab-home .feature-card-num{margin-bottom:20px}body.lab-home .scene-copy,body.lab-home .scene.flip .scene-copy{padding:60px 22px;border-left:0}body.lab-home .footer{padding-inline:20px}
