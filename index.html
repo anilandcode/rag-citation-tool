@@ -311,7 +311,7 @@ img { max-width: 100%; display: block; }
 }
 </style>
 <link rel="stylesheet" href="/assets/css/evidence.css?v=20260928b">
-<link rel="stylesheet" href="/assets/css/olive.css?v=20260928a">
+<link rel="stylesheet" href="/assets/css/olive.css?v=20260928c">
 </head>
 <body class="lab-home">
 <a class="skip-link" href="#how">Skip to content</a>
@@ -324,6 +324,7 @@ img { max-width: 100%; display: block; }
     <a href="#verify">Verification</a>
     <a href="#production">Capabilities</a>
     <a href="/app">Workspace ↗</a>
+    <a class="nav-demo-mobile" href="/demo">Open live demo ↗</a>
   </div>
   <a class="nav-wordmark" href="/" aria-label="CiteRAG home">CiteRAG</a>
   <div class="nav-right">
@@ -349,7 +350,8 @@ img { max-width: 100%; display: block; }
 <section class="olive-showcase" id="how" aria-labelledby="showcase-title">
   <div class="olive-showcase-intro"><span class="olive-section-pill">FROM QUESTION TO EVIDENCE</span><h2 id="showcase-title">Built for answers<br>you can inspect.</h2><p>Explore the sample workflow, then open the live research interface to ask your own question.</p></div>
   <div class="olive-tabs" role="group" aria-label="Explore the research workflow"><button type="button" aria-pressed="true" data-view="ask">Ask a question</button><button type="button" aria-pressed="false" data-view="source">Inspect sources</button><button type="button" aria-pressed="false" data-view="verify">Check the claim</button></div>
-  <div class="hero-mockup">
+  <p class="olive-step-note" id="showcase-step" aria-live="polite"><span>01 / ASK</span> Start with a question about the four sample documents. The answer shows where its claim came from.</p>
+  <div class="hero-mockup" data-view="ask" aria-describedby="showcase-step">
     <div class="mockup-bar"><span class="mockup-dot"></span><span class="mockup-dot"></span><span class="mockup-dot"></span></div>
     <div class="mockup-panes">
       <div class="mockup-pane">
@@ -632,9 +634,19 @@ document.querySelectorAll('.faq-item').forEach(item => {
 });
 </script>
 <script>
+  const showcaseSteps = {
+    ask: ['01 / ASK', 'Start with a question about the four sample documents. The answer shows where its claim came from.'],
+    source: ['02 / SOURCE', 'Find the cited file beside the answer. Open the live demo to inspect its source passage.'],
+    verify: ['03 / CHECK', 'See which claim the sample source supports, and where the documents cannot provide an answer.']
+  };
   document.querySelectorAll('.olive-tabs button').forEach(button => button.addEventListener('click', () => {
     document.querySelectorAll('.olive-tabs button').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
     document.querySelector('.hero-mockup').dataset.view = button.dataset.view;
+    const [step, description] = showcaseSteps[button.dataset.view];
+    document.getElementById('showcase-step').replaceChildren();
+    const label = document.createElement('span');
+    label.textContent = step;
+    document.getElementById('showcase-step').append(label, document.createTextNode(` ${description}`));
   }));
 </script>
 </body>

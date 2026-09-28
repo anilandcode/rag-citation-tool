@@ -244,7 +244,7 @@
   }
 </style>
 <link rel="stylesheet" href="/assets/css/evidence.css?v=20260928b">
-<link rel="stylesheet" href="/assets/css/olive.css?v=20260928a">
+<link rel="stylesheet" href="/assets/css/olive.css?v=20260928c">
 <script src="/assets/config.js"></script>
 </head>
 <body class="lab-app">
@@ -265,10 +265,11 @@
 
 <div class="lab-page-heading" id="app-content"><div class="lab-kicker">CITERAG / WORKSPACE</div><h1 class="lab-title">Your evidence workspace.</h1><p class="lab-description">Add documents, ask questions, inspect claims, and review the sample audit.</p></div>
 <div class="tab-bar" role="tablist" aria-label="Workspace views">
-  <button class="tab-btn active" id="tab-btn-corpus" role="tab" aria-controls="tab-corpus" aria-selected="true" tabindex="0" onclick="switchTab('corpus')">Corpus</button>
-  <button class="tab-btn" id="tab-btn-playground" role="tab" aria-controls="tab-playground" aria-selected="false" tabindex="-1" onclick="switchTab('playground')">Playground</button>
-  <button class="tab-btn" id="tab-btn-report" role="tab" aria-controls="tab-report" aria-selected="false" tabindex="-1" onclick="switchTab('report')">Report</button>
-  <button class="tab-btn" id="tab-btn-settings" role="tab" aria-controls="tab-settings" aria-selected="false" tabindex="-1" onclick="switchTab('settings')">Settings</button>
+  <span class="tab-rail-label" aria-hidden="true">WORKSPACE / 01—04</span>
+  <button class="tab-btn active" id="tab-btn-corpus" role="tab" aria-controls="tab-corpus" aria-selected="true" tabindex="0" onclick="switchTab('corpus')"><span class="tab-index" aria-hidden="true">01</span>Corpus</button>
+  <button class="tab-btn" id="tab-btn-playground" role="tab" aria-controls="tab-playground" aria-selected="false" tabindex="-1" onclick="switchTab('playground')"><span class="tab-index" aria-hidden="true">02</span>Playground</button>
+  <button class="tab-btn" id="tab-btn-report" role="tab" aria-controls="tab-report" aria-selected="false" tabindex="-1" onclick="switchTab('report')"><span class="tab-index" aria-hidden="true">03</span>Report</button>
+  <button class="tab-btn" id="tab-btn-settings" role="tab" aria-controls="tab-settings" aria-selected="false" tabindex="-1" onclick="switchTab('settings')"><span class="tab-index" aria-hidden="true">04</span>Settings</button>
 </div>
 
 <div class="tab-panel active" id="tab-corpus" role="tabpanel" aria-labelledby="tab-btn-corpus">
@@ -417,13 +418,20 @@
     if (name === 'corpus' || name === 'playground') checkHealth();
   }
 
-  document.querySelector('.tab-bar').addEventListener('keydown', function (event) {
-    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+  const workspaceTabs = document.querySelector('.tab-bar');
+  const verticalTabs = window.matchMedia('(min-width: 901px)');
+  function updateTabOrientation() { workspaceTabs.setAttribute('aria-orientation', verticalTabs.matches ? 'vertical' : 'horizontal'); }
+  updateTabOrientation();
+  verticalTabs.addEventListener('change', updateTabOrientation);
+  workspaceTabs.addEventListener('keydown', function (event) {
+    const previous = verticalTabs.matches ? 'ArrowUp' : 'ArrowLeft';
+    const following = verticalTabs.matches ? 'ArrowDown' : 'ArrowRight';
+    if (![previous, following, 'Home', 'End'].includes(event.key)) return;
     const tabs = Array.from(this.querySelectorAll('[role="tab"]'));
     const index = tabs.indexOf(document.activeElement);
     if (index < 0) return;
     event.preventDefault();
-    const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === following ? 1 : -1) + tabs.length) % tabs.length;
     tabs[next].click(); tabs[next].focus();
   });
 
