@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CiteRAG - AI Answers, Proven by Citations</title>
+<title>CiteRAG — Answers, with evidence</title>
 <meta name="description" content="Production RAG: hybrid retrieve, cite the page, verify the claim, refuse when the file is silent. Built by anilpervaiz.com.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%233D5C27'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='700' font-family='sans-serif'>C</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -310,68 +310,83 @@ img { max-width: 100%; display: block; }
   .page-sheet { margin: 0; border-radius: 0; }
 }
 </style>
+<link rel="stylesheet" href="/assets/css/evidence.css?v=20260928b">
+<link rel="stylesheet" href="/assets/css/olive.css?v=20260928c">
 </head>
-<body>
+<body class="lab-home">
+<a class="skip-link" href="#how">Skip to content</a>
 <div class="page-sheet">
 
 <nav class="nav-bar" aria-label="Main">
-  <button class="nav-toggle" aria-label="Menu" onclick="document.getElementById('navlinks').classList.toggle('open')">☰</button>
+  <button class="nav-toggle" aria-label="Menu" aria-controls="navlinks" aria-expanded="false" onclick="const links=document.getElementById('navlinks');links.classList.toggle('open');this.setAttribute('aria-expanded',links.classList.contains('open'))">☰</button>
   <div class="nav-links" id="navlinks">
-    <a href="#how">How it works</a>
-    <a href="#production">Production</a>
-    <a href="#scale">Scale</a>
-    <a href="#offer">Offer</a>
-    <a href="/v1">Original</a>
+    <a href="#how">Workflow</a>
+    <a href="#verify">Verification</a>
+    <a href="#production">Capabilities</a>
+    <a href="/app">Workspace ↗</a>
+    <a class="nav-demo-mobile" href="/demo">Open live demo ↗</a>
   </div>
-  <div class="nav-wordmark">CITERAG</div>
+  <a class="nav-wordmark" href="/" aria-label="CiteRAG home">CiteRAG</a>
   <div class="nav-right">
-    <a href="/demo" class="btn btn-outline" style="font-size:13px;padding:8px 16px;">Demo</a>
-    <a href="mailto:hello@anilpervaiz.com?subject=CiteRAG%20audit" class="btn btn-primary">Book an audit</a>
+    <a href="/demo" class="btn btn-primary">Open live demo ↗</a>
   </div>
 </nav>
 
-<section class="hero-section">
-  <h1 class="hero-headline">Your AI answers.<br><span class="accent">Proven by citations.</span></h1>
-  <p class="hero-subhead">Hybrid retrieve, cite the page, verify the claim, refuse when the file is silent. A production RAG stack you can hire, not a chat wrapper.</p>
+<section class="hero-section" aria-labelledby="hero-title">
+  <svg class="olive-geometry" viewBox="0 0 1440 880" preserveAspectRatio="xMidYMin slice" aria-hidden="true"><path d="M0 0L700 720M1440 0L700 720M0 560H1440M180 0V880M450 0V880M850 0V880M1200 0V880M0 300H1440M0 0L1440 880M1440 0L0 880"/><circle cx="720" cy="510" r="390"/><circle cx="720" cy="510" r="285"/></svg>
+  <div class="olive-hero-content"><span class="olive-pill">CITATION-GROUNDED RESEARCH / LIVE DEMO</span>
+  <h1 class="hero-headline" id="hero-title">Answers you can<br><span class="accent">trace back.</span></h1>
+  <p class="hero-subhead">Ask your documents. Inspect the source. See which claims hold up. A research workflow built for answers that can show their evidence.</p>
   <div class="hero-ctas">
-    <a href="/demo" class="btn btn-primary" style="font-size:15px;padding:14px 28px;">Start demo</a>
-    <a href="mailto:hello@anilpervaiz.com?subject=CiteRAG%20audit" class="btn btn-dark" style="font-size:15px;padding:14px 28px;">Book an audit</a>
+    <a href="/demo" class="btn btn-primary">Try the live demo ↗</a>
+    <a href="#how" class="btn btn-dark">See how it works ↓</a>
+  </div><p class="hero-context">Public demo · Sample documents · No account required</p></div>
+  <div class="olive-summary-row" aria-label="CiteRAG workflow summaries">
+    <a class="olive-summary" href="/demo"><span>01 / SAMPLE CORPUS <span aria-hidden="true">↗</span></span><strong>4 documents</strong><small>Policies, terms, pricing, and demo guide</small><i aria-hidden="true"></i></a>
+    <a class="olive-summary" href="#hybrid"><span>02 / RETRIEVAL <span aria-hidden="true">↗</span></span><strong>Two paths.</strong><small>Meaning and keywords, fused into one result</small><i aria-hidden="true"></i></a>
+    <a class="olive-summary" href="#verify"><span>03 / VERIFICATION <span aria-hidden="true">↗</span></span><strong>Claim by claim.</strong><small>Source evidence or an honest refusal</small><i aria-hidden="true"></i></a>
   </div>
-  <div class="hero-mockup">
+</section>
+<section class="olive-showcase" id="how" aria-labelledby="showcase-title">
+  <div class="olive-showcase-intro"><span class="olive-section-pill">FROM QUESTION TO EVIDENCE</span><h2 id="showcase-title">Built for answers<br>you can inspect.</h2><p>Explore the sample workflow, then open the live research interface to ask your own question.</p></div>
+  <div class="olive-tabs" role="group" aria-label="Explore the research workflow"><button type="button" aria-pressed="true" data-view="ask">Ask a question</button><button type="button" aria-pressed="false" data-view="source">Inspect sources</button><button type="button" aria-pressed="false" data-view="verify">Check the claim</button></div>
+  <p class="olive-step-note" id="showcase-step" aria-live="polite"><span>01 / ASK</span> Start with a question about the four sample documents. The answer shows where its claim came from.</p>
+  <div class="hero-mockup" data-view="ask" aria-describedby="showcase-step">
     <div class="mockup-bar"><span class="mockup-dot"></span><span class="mockup-dot"></span><span class="mockup-dot"></span></div>
     <div class="mockup-panes">
       <div class="mockup-pane">
         <div class="mockup-label">Documents</div>
-        <div class="mockup-doc active"><div class="mockup-doc-icon"></div> refund-policy.pdf</div>
-        <div class="mockup-doc"><div class="mockup-doc-icon"></div> terms-2026.pdf</div>
-        <div class="mockup-doc"><div class="mockup-doc-icon"></div> compliance.md</div>
-        <div class="mockup-doc"><div class="mockup-doc-icon"></div> pricing.docx</div>
+        <div class="mockup-doc active"><div class="mockup-doc-icon"></div> refund-policy.md</div>
+        <div class="mockup-doc"><div class="mockup-doc-icon"></div> terms-2026.md</div>
+        <div class="mockup-doc"><div class="mockup-doc-icon"></div> README_DEMO.md</div>
+        <div class="mockup-doc"><div class="mockup-doc-icon"></div> pricing.md</div>
       </div>
       <div class="mockup-pane">
         <div class="mockup-label">Chat</div>
         <div class="mockup-msg user">What is the refund policy for annual subscriptions?</div>
         <div class="mockup-msg ai">
-          Annual subscriptions can be refunded within 30 days of purchase.
-          <span class="mockup-cite">Source: refund-policy.pdf, p.2</span>
+          Annual subscriptions can be refunded within 30 days of the initial purchase date.
+          <span class="mockup-cite">Sample source: refund-policy.md</span>
         </div>
       </div>
       <div class="mockup-pane">
         <div class="mockup-label">Verification</div>
-        <div class="mockup-vrow pass"><span>refund-policy.pdf</span><span>supported</span></div>
+        <div class="mockup-vrow pass"><span>refund-policy.md</span><span>supported</span></div>
         <div class="mockup-vrow fail"><span>not in corpus</span><span>would refuse</span></div>
         <div class="mockup-score">
-          <div class="mockup-score-label">Sample faithfulness</div>
-          <div class="mockup-score-val">0.94</div>
+          <div class="mockup-score-label">Inspect evidence</div>
+          <div class="mockup-score-val">↗</div>
         </div>
       </div>
     </div>
   </div>
+  <a href="/demo" class="olive-showcase-link">Open the live demo <span aria-hidden="true">↗</span></a>
 </section>
 
-<section class="section" id="how">
-  <div class="section-label">The offer</div>
-  <h2 class="section-h2">I built this stack.<br><span class="accent">I can build it on your documents.</span></h2>
-  <p class="section-body" style="margin-top:16px;">CiteRAG is the working case: ingest, hybrid retrieve, cite, verify, refuse, evaluate. The offer is a demo, an accuracy audit, or a custom pipeline. Not a $5 SaaS seat.</p>
+<section class="section" id="method">
+  <div class="section-label">01 / The method</div>
+  <h2 class="section-h2">From question<br><span class="accent">to proof.</span></h2>
+  <p class="section-body" style="margin-top:16px;">Connect documents, retrieve the relevant passages, inspect the citations, and see a clear refusal when the files are silent.</p>
   <div class="features-grid">
     <div class="feature-card">
       <div class="feature-card-num">01</div>
@@ -391,13 +406,15 @@ img { max-width: 100%; display: block; }
   </div>
 </section>
 
+<section class="olive-process" aria-labelledby="process-title"><div class="olive-process-head"><div><span class="olive-section-pill">THE EVIDENCE PATH</span><h2 id="process-title">From scattered files.<br>To a traceable answer.</h2></div><p>Retrieval, generation, and verification are separate steps. Each leaves enough context to inspect the outcome.</p></div><div class="olive-process-body"><div class="olive-wave" aria-hidden="true"><span></span></div><ol><li><span>01 / CONNECT</span><strong>Ingest source material</strong><p>Keep document, page, and section attached to each chunk.</p></li><li><span>02 / FIND</span><strong>Retrieve the passage</strong><p>Fuse vector meaning and exact keyword matches.</p></li><li><span>03 / ANSWER</span><strong>Cite the source</strong><p>Attach evidence to the answer rather than asking for trust.</p></li><li><span>04 / CHECK</span><strong>Verify or refuse</strong><p>Inspect support claim by claim, or say the files are silent.</p></li></ol></div></section>
+
 <section class="scene" id="hybrid">
   <div class="scene-img" style="background-image:url('assets/v4/meadow-gorge-web.jpg')"></div>
   <div class="scene-wash"></div>
   <div class="scene-copy">
     <div class="section-label">Hybrid retrieve</div>
-    <h2>Two cliffs. One stream.</h2>
-    <p>Vector-only RAG falls off the keyword side. Keyword-only misses meaning. Production RAG runs both, then lets the answer flow from the fuse.</p>
+    <h2>Find the right passage.</h2>
+    <p>Vector retrieval finds related meaning. Keyword retrieval catches exact clauses and numbers. A fused result brings the relevant source into view.</p>
     <ul class="scene-list">
       <li><strong>VectorIndexRetriever</strong> semantic neighbors</li>
       <li><strong>BM25Retriever</strong> exact tokens, SKUs, clause IDs</li>
@@ -411,8 +428,8 @@ img { max-width: 100%; display: block; }
   <div class="scene-wash"></div>
   <div class="scene-copy">
     <div class="section-label">Cite and verify</div>
-    <h2>Follow the claim downstream.</h2>
-    <p>A citation is not decoration. The river is the claim: from sentence, to [Source: file, Page X], to a judge that checks the chunk. If the water stops, we refuse.</p>
+    <h2>Follow every claim.</h2>
+    <p>Look past the answer to its source and verification result. If a document does not support a claim, the interface should make that clear.</p>
     <ul class="scene-list">
       <li><strong>Forced cite</strong> prompt requires the marker</li>
       <li><strong>Claim judge</strong> LLM check, substring fallback</li>
@@ -567,8 +584,8 @@ img { max-width: 100%; display: block; }
   </div>
 </section>
 
-<section class="cta-final">
-  <h2 class="section-h2" style="max-width:700px;margin:0 auto 24px;">Get answers you can prove.</h2>
+<section class="cta-final" id="start">
+  <span class="olive-section-pill">START WITH A REAL QUESTION</span><h2 class="section-h2" style="max-width:700px;margin:18px auto 24px;">Your next answer<br>starts with a source.</h2>
   <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
     <a href="/demo" class="btn btn-primary" style="font-size:15px;padding:14px 28px;">Start demo</a>
     <a href="mailto:hello@anilpervaiz.com?subject=CiteRAG%20audit" class="btn btn-outline">Book an audit</a>
@@ -615,6 +632,22 @@ document.querySelectorAll('.faq-item').forEach(item => {
     if (!wasOpen) this.classList.add('open');
   });
 });
+</script>
+<script>
+  const showcaseSteps = {
+    ask: ['01 / ASK', 'Start with a question about the four sample documents. The answer shows where its claim came from.'],
+    source: ['02 / SOURCE', 'Find the cited file beside the answer. Open the live demo to inspect its source passage.'],
+    verify: ['03 / CHECK', 'See which claim the sample source supports, and where the documents cannot provide an answer.']
+  };
+  document.querySelectorAll('.olive-tabs button').forEach(button => button.addEventListener('click', () => {
+    document.querySelectorAll('.olive-tabs button').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    document.querySelector('.hero-mockup').dataset.view = button.dataset.view;
+    const [step, description] = showcaseSteps[button.dataset.view];
+    document.getElementById('showcase-step').replaceChildren();
+    const label = document.createElement('span');
+    label.textContent = step;
+    document.getElementById('showcase-step').append(label, document.createTextNode(` ${description}`));
+  }));
 </script>
 </body>
 </html>

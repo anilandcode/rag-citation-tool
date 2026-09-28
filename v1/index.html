@@ -382,8 +382,11 @@
     .shell { max-width: 1280px; }
   }
 </style>
+<link rel="stylesheet" href="/assets/css/evidence.css?v=20260928b">
+<link rel="stylesheet" href="/assets/css/olive.css?v=20260928c">
 </head>
-<body>
+<body class="lab-legacy lab-v1">
+<div class="legacy-banner"><span>PREVIOUS CONCEPT / V1</span><a href="/">View current CiteRAG →</a></div>
 
 <div class="page-sheet">
 
@@ -400,9 +403,8 @@
   </div>
   <div class="nav-wordmark">CITERAG</div>
   <div class="nav-right-links" style="display:flex;gap:12px;align-items:center;">
-    <a href="#" style="font-size:14px;font-weight:500;color:var(--color-text-secondary);text-decoration:none;">Docs</a>
-    <a href="#" style="font-size:14px;font-weight:500;color:var(--color-text-secondary);text-decoration:none;">Login</a>
-    <a href="/demo" class="btn btn-primary">Get Accuracy Audit</a>
+    <a href="https://github.com/anilandcode/rag-citation-tool" style="font-size:14px;font-weight:500;color:var(--color-text-secondary);text-decoration:none;">Repository</a>
+    <a href="mailto:hello@anilpervaiz.com?subject=CiteRAG%20audit" class="btn btn-primary">Book an audit</a>
     <a href="/app" class="btn btn-outline" style="font-size:13px;padding:8px 16px;">Open App</a>
   </div>
 </nav>
@@ -413,8 +415,8 @@
   <h1 class="hero-headline">Your AI answers.<br><span class="accent">Proven by citations.</span></h1>
   <p class="hero-subhead">Fix broken RAG retrieval and ship document AI that shows its sources — with citation accuracy you can measure, not just hope for.</p>
   <div class="hero-ctas">
-    <a href="#" class="btn btn-primary" style="font-size:15px;padding:14px 28px;">Get Accuracy Audit</a>
-    <a href="#" class="btn btn-dark" style="font-size:15px;padding:14px 28px;">View Sample Report ↓</a>
+    <a href="mailto:hello@anilpervaiz.com?subject=CiteRAG%20audit" class="btn btn-primary" style="font-size:15px;padding:14px 28px;">Book an audit</a>
+    <a href="/app" class="btn btn-dark" style="font-size:15px;padding:14px 28px;">Explore workspace ↗</a>
   </div>
   <div class="hero-mockup">
     <div class="mockup-bar">
@@ -423,45 +425,33 @@
     <div class="mockup-panes">
       <div class="mockup-pane">
         <div class="mockup-label">Documents</div>
-        <div class="mockup-doc active"><div class="mockup-doc-icon"></div> refund-policy.pdf</div>
-        <div class="mockup-doc"><div class="mockup-doc-icon"></div> terms-2026.pdf</div>
-        <div class="mockup-doc"><div class="mockup-doc-icon"></div> compliance.md</div>
-        <div class="mockup-doc"><div class="mockup-doc-icon"></div> pricing.docx</div>
+        <div class="mockup-doc active"><div class="mockup-doc-icon"></div> refund-policy.md</div>
+        <div class="mockup-doc"><div class="mockup-doc-icon"></div> terms-2026.md</div>
+        <div class="mockup-doc"><div class="mockup-doc-icon"></div> README_DEMO.md</div>
+        <div class="mockup-doc"><div class="mockup-doc-icon"></div> pricing.md</div>
       </div>
       <div class="mockup-pane">
         <div class="mockup-label">Chat</div>
         <div class="mockup-chat">
           <div class="mockup-msg user">What is the refund policy for annual subscriptions?</div>
           <div class="mockup-msg ai">
-            Annual subscriptions can be refunded within 30 days of purchase.
-            <span class="mockup-cite">Source: refund-policy.pdf, p.2</span>
+            Annual subscriptions can be refunded within 30 days of the initial purchase date.
+            <span class="mockup-cite">Sample source: refund-policy.md</span>
           </div>
         </div>
       </div>
       <div class="mockup-pane">
         <div class="mockup-label">Verification</div>
         <div class="mockup-verify">
-          <div class="mockup-vrow pass"><span>refund-policy.pdf</span><span>✓ verified</span></div>
-          <div class="mockup-vrow pass"><span>terms-2026.pdf</span><span>✓ verified</span></div>
-          <div class="mockup-vrow fail"><span>pricing.docx</span><span>✗ unsupported</span></div>
+          <div class="mockup-vrow pass"><span>refund-policy.md</span><span>✓ sample verdict</span></div>
+          <div class="mockup-vrow fail"><span>no source found</span><span>✗ would refuse</span></div>
         </div>
         <div class="mockup-score">
-          <div class="mockup-score-label">Faithfulness Score</div>
-          <div class="mockup-score-val">0.94</div>
+          <div class="mockup-score-label">Sample response</div>
+          <div class="mockup-score-val">↗</div>
         </div>
       </div>
     </div>
-  </div>
-</section>
-
-<!-- Logo Marquee -->
-<section class="section" style="padding:48px 32px;">
-  <div style="display:flex;justify-content:center;gap:48px;flex-wrap:wrap;opacity:0.35;filter:grayscale(1);">
-    <span style="font-size:16px;font-weight:600;color:var(--color-text-secondary);">As seen on</span>
-    <span style="font-size:15px;font-weight:600;color:var(--color-text-secondary);">Upwork</span>
-    <span style="font-size:15px;font-weight:600;color:var(--color-text-secondary);">Hub71</span>
-    <span style="font-size:15px;font-weight:600;color:var(--color-text-secondary);">Product Hunt</span>
-    <span style="font-size:15px;font-weight:600;color:var(--color-text-secondary);">AMD Hackathon</span>
   </div>
 </section>
 
@@ -660,37 +650,6 @@
   </div>
 </section>
 
-<!-- Customer Stories -->
-<section class="section">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-    <h2 class="section-h2" style="font-size:40px;">Trusted by teams<br><span class="accent">shipping document AI.</span></h2>
-    <a href="#" class="btn btn-outline">View all stories</a>
-  </div>
-  <div class="testimonial-cards">
-    <div class="testimonial-main">
-      <div class="featured-tag">Featured story</div>
-      <blockquote>"Our RAG chatbot was confidently citing a refund policy we'd retired eight months ago. They found it in a day, fixed the pipeline in a week, and now every answer ships with an accuracy score."</blockquote>
-      <div class="attribution">Priya Sharma, VP Engineering · Finovate</div>
-    </div>
-    <div class="testimonial-strip" style="background:var(--color-card-teal);">
-      <div class="strip-company">MetroHealth AI</div>
-      <div class="strip-role">Clinical Compliance</div>
-    </div>
-    <div class="testimonial-strip" style="background:var(--color-card-gold);">
-      <div class="strip-company">LexBridge Legal</div>
-      <div class="strip-role">Document Review</div>
-    </div>
-    <div class="testimonial-strip" style="background:var(--color-card-rose);">
-      <div class="strip-company">EduScribe</div>
-      <div class="strip-role">Curriculum Q&A</div>
-    </div>
-    <div class="testimonial-strip" style="background:var(--color-card-slate);">
-      <div class="strip-company">PolicyWatch</div>
-      <div class="strip-role">Regulatory Intel</div>
-    </div>
-  </div>
-</section>
-
 <!-- FAQ -->
 <section class="section">
   <div class="faq-wrap">
@@ -742,43 +701,12 @@
   </div>
 </section>
 
-<!-- Blog -->
-<section class="section" style="padding-top:0;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-    <h2 class="section-h2" style="font-size:40px;">Latest from<br><span class="accent">the lab.</span></h2>
-    <a href="#" class="btn btn-outline">All articles</a>
-  </div>
-  <div class="blog-grid">
-    <div class="blog-card">
-      <div class="blog-thumb" style="background:#E8EDE2;"></div>
-      <div class="blog-content">
-        <div class="blog-meta"><span>Engineering</span><span>·</span><span>Aug 2026</span></div>
-        <h4>Why your RAG chatbot cites retired documents</h4>
-      </div>
-    </div>
-    <div class="blog-card">
-      <div class="blog-thumb" style="background:#E2EAE5;"></div>
-      <div class="blog-content">
-        <div class="blog-meta"><span>Product</span><span>·</span><span>Jul 2026</span></div>
-        <h4>Citation accuracy is a number. Here's how to measure it.</h4>
-      </div>
-    </div>
-    <div class="blog-card">
-      <div class="blog-thumb" style="background:#E5E2E8;"></div>
-      <div class="blog-content">
-        <div class="blog-meta"><span>Engineering</span><span>·</span><span>Jun 2026</span></div>
-        <h4>Hybrid search vs vector-only: the $10K mistake</h4>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- Final CTA -->
 <section class="cta-final">
   <h2 class="section-h2" style="max-width:700px;margin:0 auto 24px;">Get answers you can prove.</h2>
   <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
-    <a href="#" class="btn btn-primary" style="font-size:15px;padding:14px 28px;">Get Accuracy Audit</a>
-    <a href="#" class="btn btn-outline" style="font-size:15px;padding:14px 28px;">View Sample Report</a>
+    <a href="mailto:hello@anilpervaiz.com?subject=CiteRAG%20audit" class="btn btn-primary" style="font-size:15px;padding:14px 28px;">Book an audit</a>
+    <a href="/app" class="btn btn-outline" style="font-size:15px;padding:14px 28px;">Explore workspace</a>
   </div>
 </section>
 
@@ -788,31 +716,29 @@
     <div class="nav-wordmark" style="margin-bottom:12px;">CITERAG</div>
     <p style="font-size:13px;color:var(--color-text-secondary);line-height:1.5;margin-bottom:12px;">Citation-grounded RAG platform<br>for teams that need answers<br>they can verify.</p>
     <div style="display:flex;gap:14px;">
-      <a href="https://x.com" style="font-size:13px;color:var(--color-text-secondary);text-decoration:none;">X</a>
-      <a href="https://linkedin.com" style="font-size:13px;color:var(--color-text-secondary);text-decoration:none;">LinkedIn</a>
-      <a href="https://github.com" style="font-size:13px;color:var(--color-text-secondary);text-decoration:none;">GitHub</a>
+      <a href="https://github.com/anilandcode/rag-citation-tool" style="font-size:13px;color:var(--color-text-secondary);text-decoration:none;">GitHub</a>
     </div>
   </div>
   <div>
     <h5>Product</h5>
-    <a href="#">Overview</a><a href="#">Accuracy Audits</a><a href="#">Evaluation Harness</a><a href="#">API</a><a href="#">Security</a>
+    <a href="/">Current site</a><a href="/demo">Live demo</a><a href="/app">Workspace</a>
   </div>
   <div>
     <h5>Solutions</h5>
-    <a href="#">RAG Repair</a><a href="#">Document Q&A</a><a href="#">Regulated Industries</a><a href="#">Agencies</a>
+    <a href="#features">Features</a><a href="#solutions">How it works</a>
   </div>
   <div>
     <h5>Resources</h5>
-    <a href="#">Sample Report</a><a href="#">Benchmarks</a><a href="#">Blog</a><a href="#">Docs</a><a href="#">Status</a>
+    <a href="/app">Sample report</a><a href="https://github.com/anilandcode/rag-citation-tool">Repository</a>
   </div>
   <div>
     <h5>Company</h5>
-    <a href="#">About</a><a href="#">Contact</a><a href="#">Terms</a><a href="#">Privacy</a>
+    <a href="https://anilpervaiz.com">About the builder</a><a href="mailto:hello@anilpervaiz.com">Contact</a>
   </div>
 </footer>
 <div class="footer-bottom">
   <span>© 2026 CiteRAG</span>
-  <span>Dark/Light</span>
+  <span>Previous visual concept</span>
 </div>
 
 </div><!-- /page-sheet -->

@@ -416,9 +416,12 @@
     .demo-nav-brand { margin-bottom: 4px; }
   }
 </style>
+<link rel="stylesheet" href="/assets/css/evidence.css?v=20260928b">
+<link rel="stylesheet" href="/assets/css/olive.css?v=20260928c">
 <script src="/assets/config.js"></script>
 </head>
-<body>
+<body class="lab-demo">
+<a class="skip-link" href="#demo-content">Skip to demo</a>
 <div class="demo-shell">
 
   <nav class="demo-nav">
@@ -428,7 +431,7 @@
     </div>
     <div class="demo-nav-links">
       <a href="/">← Back to site</a>
-      <span id="health-dot" style="width:8px;height:8px;border-radius:50%;background:#CCC;display:inline-block;" title="API status"></span>
+      <span id="health-dot" style="width:8px;height:8px;border-radius:50%;background:#CCC;display:inline-block;" title="API status" aria-hidden="true"></span><span id="health-label" role="status">Checking connection</span>
     </div>
   </nav>
 
@@ -436,6 +439,7 @@
     ⚠ API unavailable — showing <a href="#" onclick="loadOfflineTranscript()">canned demo transcript</a> (offline preview)
   </div>
 
+  <div class="lab-page-heading" id="demo-content"><div class="lab-kicker">CITERAG / LIVE RESEARCH INTERFACE</div><h1 class="lab-title">Ask. Then inspect the evidence.</h1><p class="lab-description">Explore the sample documents, ask a question, and follow the citation to its source.</p></div>
   <div class="demo-main">
 
     <!-- Documents Panel -->
@@ -443,7 +447,7 @@
       <div class="panel-label">Documents</div>
       <div id="doc-list">
         <div class="verify-empty">
-          <div class="verify-empty-icon">📄</div>
+          <div class="verify-empty-icon" aria-hidden="true">▤</div>
           No documents indexed yet.
         </div>
       </div>
@@ -464,14 +468,14 @@
       <div class="chat-area">
         <div class="chat-messages" id="chat-messages">
           <div class="verify-empty" style="padding:60px 20px;">
-            <div class="verify-empty-icon">💬</div>
+            <div class="verify-empty-icon" aria-hidden="true">↗</div>
             Ask a question or click a preset above.
           </div>
         </div>
         <div class="chat-input-area">
           <div class="chat-input-row">
-            <textarea id="chat-input" class="chat-input" rows="1" placeholder="Ask a question about the documents..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitQuestion(this.value)}"></textarea>
-            <button id="send-btn" class="send-btn" onclick="submitQuestion(document.getElementById('chat-input').value)">→</button>
+            <label class="visually-hidden" for="chat-input">Ask a question about the documents</label><textarea id="chat-input" class="chat-input" rows="1" placeholder="Ask a question about the documents..." onkeydown="if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();submitQuestion(this.value)}"></textarea>
+            <button id="send-btn" class="send-btn" aria-label="Send question" onclick="submitQuestion(document.getElementById('chat-input').value)">→</button>
           </div>
         </div>
       </div>
@@ -483,7 +487,7 @@
         <div class="panel-label" style="margin-bottom:0;">Verification</div>
       </div>
       <div class="verify-empty" id="verify-empty">
-        <div class="verify-empty-icon">🔍</div>
+        <div class="verify-empty-icon" aria-hidden="true">⌕</div>
         Citations appear here after you ask a question.
       </div>
       <div id="verify-content" style="display:none;">
@@ -518,11 +522,13 @@
       const j = await r.json();
       apiOnline = true;
       document.getElementById('health-dot').style.background = '#4A7A35';
+      document.getElementById('health-label').textContent = 'API online';
       document.getElementById('offline-banner').classList.add('hidden');
       if (j.indexed) loadDocList(j.sources || null);
     } catch {
       apiOnline = false;
       document.getElementById('health-dot').style.background = '#C08A8A';
+      document.getElementById('health-label').textContent = 'API offline';
       document.getElementById('offline-banner').classList.remove('hidden');
     }
   }

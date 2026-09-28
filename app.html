@@ -243,9 +243,12 @@
     .shell { max-width: 1280px; }
   }
 </style>
+<link rel="stylesheet" href="/assets/css/evidence.css?v=20260928b">
+<link rel="stylesheet" href="/assets/css/olive.css?v=20260928c">
 <script src="/assets/config.js"></script>
 </head>
-<body>
+<body class="lab-app">
+<a class="skip-link" href="#app-content">Skip to workspace</a>
 <div class="shell">
 
 <div class="topbar">
@@ -260,18 +263,20 @@
   </div>
 </div>
 
-<div class="tab-bar" role="tablist">
-  <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchTab('corpus')">Corpus</button>
-  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('playground')">Playground</button>
-  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('report')">Report</button>
-  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('settings')">Settings</button>
+<div class="lab-page-heading" id="app-content"><div class="lab-kicker">CITERAG / WORKSPACE</div><h1 class="lab-title">Your evidence workspace.</h1><p class="lab-description">Add documents, ask questions, inspect claims, and review the sample audit.</p></div>
+<div class="tab-bar" role="tablist" aria-label="Workspace views">
+  <span class="tab-rail-label" aria-hidden="true">WORKSPACE / 01—04</span>
+  <button class="tab-btn active" id="tab-btn-corpus" role="tab" aria-controls="tab-corpus" aria-selected="true" tabindex="0" onclick="switchTab('corpus')"><span class="tab-index" aria-hidden="true">01</span>Corpus</button>
+  <button class="tab-btn" id="tab-btn-playground" role="tab" aria-controls="tab-playground" aria-selected="false" tabindex="-1" onclick="switchTab('playground')"><span class="tab-index" aria-hidden="true">02</span>Playground</button>
+  <button class="tab-btn" id="tab-btn-report" role="tab" aria-controls="tab-report" aria-selected="false" tabindex="-1" onclick="switchTab('report')"><span class="tab-index" aria-hidden="true">03</span>Report</button>
+  <button class="tab-btn" id="tab-btn-settings" role="tab" aria-controls="tab-settings" aria-selected="false" tabindex="-1" onclick="switchTab('settings')"><span class="tab-index" aria-hidden="true">04</span>Settings</button>
 </div>
 
-<div class="tab-panel active" id="tab-corpus">
+<div class="tab-panel active" id="tab-corpus" role="tabpanel" aria-labelledby="tab-btn-corpus">
   <div class="corpus-grid">
     <div>
-      <div class="panel-label">Upload Documents</div>
-      <div class="upload-zone" id="dropzone" onclick="document.getElementById('file-input').click()">
+      <div class="panel-label">01 / Upload documents</div>
+      <div class="upload-zone" id="dropzone" role="button" tabindex="0" aria-label="Select files to upload" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('file-input').click()}" onclick="document.getElementById('file-input').click()">
         <div class="upload-zone-symbol">+</div>
         <div class="upload-zone-text">Drop files or click to browse</div>
         <div class="upload-zone-hint">PDF, DOCX, MD, TXT</div>
@@ -301,7 +306,7 @@
   </div>
 </div>
 
-<div class="tab-panel" id="tab-playground">
+<div class="tab-panel" id="tab-playground" role="tabpanel" aria-labelledby="tab-btn-playground">
   <div class="playground-grid">
     <div class="play-panel">
       <div class="panel-label uppercase">Documents</div>
@@ -313,8 +318,8 @@
           <div class="empty-state" style="padding:60px 20px;"><div class="empty-state-icon">?</div>Ask a question to get started</div>
         </div>
         <div class="chat-input-row">
-          <input id="play-chat-input" placeholder="Ask a question about your documents..." onkeydown="if(event.key==='Enter'){submitPlaygroundQuery()}">
-          <button class="send-btn" onclick="submitPlaygroundQuery()">→</button>
+        <label class="visually-hidden" for="play-chat-input">Ask a question about your documents</label><input id="play-chat-input" placeholder="Ask a question about your documents..." onkeydown="if(event.key==='Enter'&&!event.isComposing){submitPlaygroundQuery()}">
+          <button class="send-btn" aria-label="Send question" onclick="submitPlaygroundQuery()">→</button>
         </div>
       </div>
     </div>
@@ -332,9 +337,10 @@
   </div>
 </div>
 
-<div class="tab-panel" id="tab-report">
+<div class="tab-panel" id="tab-report" role="tabpanel" aria-labelledby="tab-btn-report">
   <div class="report-grid">
-    <div class="panel-label" style="margin-bottom:16px;">Audit Report</div>
+    <div class="panel-label" style="margin-bottom:16px;">03 / Audit report</div>
+    <div class="sample-report-banner"><strong>SAMPLE REPORT</strong><span>The comparison below is illustrative and does not measure your uploaded documents.</span></div>
     <div id="report-content">
       <div class="report-card">
         <div class="report-metrics">
@@ -366,28 +372,21 @@
   </div>
 </div>
 
-<div class="tab-panel" id="tab-settings">
+<div class="tab-panel" id="tab-settings" role="tabpanel" aria-labelledby="tab-btn-settings">
   <div class="settings-grid">
     <div class="panel-label" style="margin-bottom:16px;">API Connection</div>
     <div class="setting-row">
-      <label>API Base URL</label>
+      <label for="setting-api-url">API Base URL</label>
       <input id="setting-api-url" value="" placeholder="/api or https://your-api.onrender.com">
       <div class="setting-hint">Production default is /api (Vercel proxy). Local default is http://localhost:8000.</div>
     </div>
     <div class="setting-row">
-      <label>API Key</label>
+      <label for="setting-api-key">API Key</label>
       <input id="setting-api-key" type="password" placeholder="demo-public-key">
       <div class="setting-hint">Sent as X-API-Key header. Leave empty for open mode.</div>
     </div>
-    <div class="setting-row">
-      <label>Theme</label>
-      <select id="setting-theme">
-        <option value="light" selected>Light</option>
-        <option value="dark">Dark (coming soon)</option>
-      </select>
-    </div>
     <button class="save-btn" onclick="saveSettings()">Save Settings</button>
-    <div id="settings-saved" style="display:none;margin-top:10px;font-size:13px;color:var(--accent);">Settings saved</div>
+    <div id="settings-saved" role="status" style="display:none;margin-top:10px;font-size:13px;color:var(--accent);">Settings saved. Connection status updates separately.</div>
   </div>
 </div>
 
@@ -415,8 +414,26 @@
     document.querySelectorAll('[role="tab"]').forEach(b => b.setAttribute('aria-selected', 'false'));
     const activeBtn = document.querySelector(`.tab-btn[onclick*="${name}"]`);
     if (activeBtn) activeBtn.setAttribute('aria-selected', 'true');
+    document.querySelectorAll('[role="tab"]').forEach(b => b.tabIndex = b === activeBtn ? 0 : -1);
     if (name === 'corpus' || name === 'playground') checkHealth();
   }
+
+  const workspaceTabs = document.querySelector('.tab-bar');
+  const verticalTabs = window.matchMedia('(min-width: 901px)');
+  function updateTabOrientation() { workspaceTabs.setAttribute('aria-orientation', verticalTabs.matches ? 'vertical' : 'horizontal'); }
+  updateTabOrientation();
+  verticalTabs.addEventListener('change', updateTabOrientation);
+  workspaceTabs.addEventListener('keydown', function (event) {
+    const previous = verticalTabs.matches ? 'ArrowUp' : 'ArrowLeft';
+    const following = verticalTabs.matches ? 'ArrowDown' : 'ArrowRight';
+    if (![previous, following, 'Home', 'End'].includes(event.key)) return;
+    const tabs = Array.from(this.querySelectorAll('[role="tab"]'));
+    const index = tabs.indexOf(document.activeElement);
+    if (index < 0) return;
+    event.preventDefault();
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === following ? 1 : -1) + tabs.length) % tabs.length;
+    tabs[next].click(); tabs[next].focus();
+  });
 
   async function checkHealth() {
     try {
